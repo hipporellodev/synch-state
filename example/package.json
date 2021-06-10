@@ -1,0 +1,26 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "@syncstate/history": "^0.6.0",
+    "@syncstate/react": "^0.7.0-rc.3",
+    "@syncstate/remote-client": "^0.7.0-rc.0",
+    "react-app-polyfill": "^1.0.0",
+    "socket.io-client": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^16.9.11",
+    "@types/react-dom": "^16.8.4",
+    "@types/socket.io-client": "^1.4.33",
+    "parcel": "^1.12.3",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "typescript": "^3.4.5"
+  }
+}
