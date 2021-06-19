@@ -46,6 +46,10 @@ export default class DocStore {
       doc: {
         state: initialDoc,
         patches: [],
+        localCommands:[],
+        confirmedCommands: [],
+        commands:{},
+        remoteState:initialDoc
       },
     };
 

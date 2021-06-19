@@ -64,11 +64,13 @@ export default function useSyncState(
       });
       // console.log(JSON.stringify(patches, null, 2), 'patches');
 
-      patches.forEach((patch: any, index: number) => {
-        store.dispatch({
-          type: 'PATCH',
-          payload: { patch, inversePatch: inversePatches[index], subtree },
-        });
+      // patches.forEach((patch: any, index: number) => {
+      //
+      // });
+
+      store.dispatch({
+        type: 'PATCHES',
+        payload: { patches, inversePatches, subtree },
       });
 
       // store.dispatch({

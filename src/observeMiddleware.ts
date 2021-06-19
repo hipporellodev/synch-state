@@ -13,44 +13,51 @@ export const createObserveMiddleware = (observers: Map<number, Observer>) => {
   return (store: any) => (next: any) => (action: any) => {
     const result = next(action);
 
-    if (action.type === 'PATCH') {
+    if (action.type === 'PATCHES') {
       observers.forEach((observer, key) => {
-        const payloadPath = action.payload.patch.path;
+        let foundAction = action.payload.patches.find((patch:any)=>{
+          const payloadPath = patch.path;
 
-        if (observer.subtree !== action.payload.subtree || observer.depth < 0) {
-          // Skip this observer if observer and action.payload subtrees do not match
-          return;
-        }
+          if (observer.subtree !== action.payload.subtree || observer.depth < 0) {
+            // Skip this observer if observer and action.payload subtrees do not match
+            return false;
+          }
 
-        // If path above the observer path changes call observer for all cases
-        if (observer.path.startsWith(payloadPath)) {
+          // If path above the observer path changes call observer for all cases
+          if (observer.path.startsWith(payloadPath)) {
+            return true;
+          }
+
+          // If depth x, call for x levels extra below observer path
+          else if (observer.depth > 0 && observer.depth !== Infinity) {
+            const matchingLengthPayloadPathArray = jsonPatchPathToImmerPath(
+                payloadPath
+            ).slice(0, jsonPatchPathToImmerPath(observer.path).length);
+            const remainingPayloadPathLength =
+                jsonPatchPathToImmerPath(payloadPath).length -
+                matchingLengthPayloadPathArray.length;
+
+            if (
+                immerPathToJsonPatchPath(matchingLengthPayloadPathArray) ===
+                observer.path &&
+                remainingPayloadPathLength <= observer.depth
+            ) {
+              return true;
+            }
+          }
+
+          //If depth is infinity, call for any number of levels below observer path
+          else if (observer.depth === Infinity) {
+            if (payloadPath.startsWith(observer.path)) {
+              return true;
+            }
+          }
+          return false;
+        })
+        if(foundAction){
           callObserver(observer, store, action);
         }
 
-        // If depth x, call for x levels extra below observer path
-        else if (observer.depth > 0 && observer.depth !== Infinity) {
-          const matchingLengthPayloadPathArray = jsonPatchPathToImmerPath(
-            payloadPath
-          ).slice(0, jsonPatchPathToImmerPath(observer.path).length);
-          const remainingPayloadPathLength =
-            jsonPatchPathToImmerPath(payloadPath).length -
-            matchingLengthPayloadPathArray.length;
-
-          if (
-            immerPathToJsonPatchPath(matchingLengthPayloadPathArray) ===
-              observer.path &&
-            remainingPayloadPathLength <= observer.depth
-          ) {
-            callObserver(observer, store, action);
-          }
-        }
-
-        //If depth is infinity, call for any number of levels below observer path
-        else if (observer.depth === Infinity) {
-          if (payloadPath.startsWith(observer.path)) {
-            callObserver(observer, store, action);
-          }
-        }
       });
     }
 
