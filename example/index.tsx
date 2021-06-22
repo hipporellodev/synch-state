@@ -6,45 +6,11 @@ import { TodoApp } from './Todo';
 import { applyMiddleware } from 'redux';
 import history from '@syncstate/history';
 import { Provider, useDoc } from '@syncstate/react';
-import * as remote from '@syncstate/remote-client';
-// @ts-ignore
-import socketIOClient from 'socket.io-client';
 
-const store = createDocStore({ todos: [], options: { filter: 'all' } }, [
-  history.createInitializer(),
-  remote.createInitializer(),
-]);
+const store = createDocStore({ todos: [], options: { filter: 'all' } }, []);
 
-store.dispatch(remote.enableRemote('/todos'));
-store.dispatch(remote.enableRemote('/options'));
 
-const socket = socketIOClient('http://localhost:3010', {
-  timeout: 100000,
-});
 
-store.observe('remote', '/paths/::todos/loading', (loading, change) => {
-  console.log('store.observe: remote status changed: ', loading);
-});
-
-remote.observeStatus(store, '/todos', loading => {
-  console.log('remote.observeStatus: remote status changed: ', loading);
-});
-
-socket.emit('fetchDoc', '/todos');
-socket.emit('fetchDoc', '/options');
-store.dispatch(remote.setLoading('/todos', true));
-store.dispatch(remote.setLoading('/options', true));
-console.log('Wewdwd', remote.getLoading(store, '/todos'));
-
-socket.on('loaded', path => {
-  store.dispatch(remote.setLoading(path, false));
-  console.log('Wewdwd', remote.getLoading(store, path));
-});
-
-socket.on('change', (path, patch) => {
-  console.log('Applying remote patch', patch);
-  store.dispatch(remote.applyRemote(path, patch));
-});
 
 // store.intercept(
 //   'doc',
@@ -60,16 +26,6 @@ socket.on('change', (path, patch) => {
 //   Infinity
 // );
 
-remote.onChange(store, '/todos', change => {
-  console.log(change, 'remote change ready todos');
-  socket.emit('change', '/todos', change);
-});
-
-remote.onChange(store, '/options', change => {
-  console.log(change, 'remote change ready filter');
-  socket.emit('change', '/options', change);
-});
-
 const [doc, setDoc] = store.useSyncState('doc');
 setDoc(doc => {
   doc.test = {};
@@ -81,7 +37,7 @@ store.observe(
   'doc',
   '/test',
   val => {
-    console.log('rerererererer &*(&(&&*(');
+    console.log('rerererererer &*(&(&&*(', val);
   },
   1
 );
@@ -120,13 +76,13 @@ const disposeInt = store.intercept(
   (todos, change) => {
     console.log('patch intercepted at todos path');
     console.log('patch, inversePatch', change.patch, change.inversePatch);
-    if (change.patch.path === '/todos/0' && change.patch.op === 'add') {
+    if (change.patches[0].path === '/todos/0' && change.patches[0].op === 'add') {
       return {
         ...change,
-        patch: {
-          ...change.patch,
-          value: { caption: 'Hello', completed: change.patch.value.completed },
-        },
+        patches: [{
+          ...change.patches[0],
+          value: { caption: 'Hello', completed: change.patches[0].value.completed },
+        }],
       };
     }
 
@@ -143,7 +99,6 @@ const disposeInt = store.intercept(
 const App = () => {
   return (
     <div>
-      <TodoApp />
     </div>
   );
 };

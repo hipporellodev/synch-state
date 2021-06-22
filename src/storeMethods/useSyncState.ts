@@ -59,16 +59,18 @@ export default function useSyncState(
         };
       });
 
-      inversePatches = inversePatches.map((p: any) => {
-        return { ...p, path: newPath + immerPathToJsonPatchPath(p.path) };
-      });
+      // inversePatches = inversePatches.map((p: any) => {
+      //   return { ...p, path: newPath + immerPathToJsonPatchPath(p.path) };
+      // });
       // console.log(JSON.stringify(patches, null, 2), 'patches');
 
-      patches.forEach((patch: any, index: number) => {
-        store.dispatch({
-          type: 'PATCH',
-          payload: { patch, inversePatch: inversePatches[index], subtree },
-        });
+      // patches.forEach((patch: any, index: number) => {
+      //
+      // });
+
+      store.dispatch({
+        type: 'PATCHES',
+        payload: { patches, subtree },
       });
 
       // store.dispatch({

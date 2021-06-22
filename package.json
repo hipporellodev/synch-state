@@ -10,18 +10,11 @@
     "dist",
     "src"
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/syncstate/core.git"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
   "engines": {
     "node": ">=10"
   },
   "scripts": {
-    "start": "tsdx watch",
+    "start": "NODE_ENV=production tsdx watch",
     "build": "NODE_ENV=production tsdx build",
     "test": "tsdx test --passWithNoTests",
     "lint": "tsdx lint",
@@ -31,9 +24,7 @@
     "react": ">=16"
   },
   "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
+    "hooks": {}
   },
   "prettier": {
     "printWidth": 80,
@@ -56,6 +47,7 @@
   "dependencies": {
     "immer": "^7.0.7",
     "lodash.get": "^4.4.2",
-    "redux": "^4.0.5"
+    "redux": "^4.0.5",
+    "uuid": "^8.3.2"
   }
 }

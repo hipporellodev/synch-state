@@ -15,50 +15,58 @@ export const createInterceptMiddleware = (
 ) => {
   return (store: any) => (next: any) => (action: any) => {
     let discardAction = false;
-
-    if (action.type === 'PATCH') {
+    if (action.type === 'PATCHES') {
       interceptors.forEach(interceptor => {
         if (discardAction) {
           return;
         }
-        const payloadPath: string = action.payload.patch.path;
 
-        if (
-          interceptor.subtree !== action.payload.subtree ||
-          interceptor.depth < 0
-        ) {
-          // Skip this interceptor if interceptor and action.payload subtrees do not match
-          return;
-        }
+        let foundItem = action.payload.patches.find((patch:any)=>{
 
-        // If path above the interceptor path changes call interceptor for all cases
-        if (interceptor.path.startsWith(payloadPath)) {
-          discardAction = callInterceptor(interceptor, store, action);
-        }
-
-        // If depth x, call for x levels extra below interceptor path
-        else if (interceptor.depth > 0 && interceptor.depth !== Infinity) {
-          const matchingLengthPayloadPathArray = jsonPatchPathToImmerPath(
-            payloadPath
-          ).slice(0, jsonPatchPathToImmerPath(interceptor.path).length);
-          const remainingPayloadPathLength =
-            jsonPatchPathToImmerPath(payloadPath).length -
-            matchingLengthPayloadPathArray.length;
+          const payloadPath: string = patch.path;
 
           if (
-            immerPathToJsonPatchPath(matchingLengthPayloadPathArray) ===
-              interceptor.path &&
-            remainingPayloadPathLength <= interceptor.depth
+              interceptor.subtree !== action.payload.subtree ||
+              interceptor.depth < 0
           ) {
-            discardAction = callInterceptor(interceptor, store, action);
+            // Skip this interceptor if interceptor and action.payload subtrees do not match
+            return;
           }
-        }
 
-        //If depth is infinity, call for any number of levels below interceptor path
-        else if (interceptor.depth === Infinity) {
-          if (payloadPath.startsWith(interceptor.path)) {
-            discardAction = callInterceptor(interceptor, store, action);
+          // If path above the interceptor path changes call interceptor for all cases
+          if (interceptor.path.startsWith(payloadPath)) {
+            return true;
           }
+
+          // If depth x, call for x levels extra below interceptor path
+          else if (interceptor.depth > 0 && interceptor.depth !== Infinity) {
+            const matchingLengthPayloadPathArray = jsonPatchPathToImmerPath(
+                payloadPath
+            ).slice(0, jsonPatchPathToImmerPath(interceptor.path).length);
+            const remainingPayloadPathLength =
+                jsonPatchPathToImmerPath(payloadPath).length -
+                matchingLengthPayloadPathArray.length;
+
+            if (
+                immerPathToJsonPatchPath(matchingLengthPayloadPathArray) ===
+                interceptor.path &&
+                remainingPayloadPathLength <= interceptor.depth
+            ) {
+              return true;
+            }
+          }
+
+          //If depth is infinity, call for any number of levels below interceptor path
+          else if (interceptor.depth === Infinity) {
+            if (payloadPath.startsWith(interceptor.path)) {
+              return true;
+            }
+          }
+
+          return false;
+        })
+        if(foundItem){
+          discardAction = callInterceptor(interceptor, store, action);
         }
       });
     }
