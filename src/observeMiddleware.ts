@@ -54,6 +54,7 @@ export const createObserveMiddleware = (observers: Map<number, Observer>) => {
           }
           return false;
         })
+
         if(foundAction){
           callObserver(observer, store, action);
         }
@@ -70,6 +71,6 @@ function callObserver(observer: any, store: any, action: any) {
       store.getState()[observer.subtree],
       'state' + observer.path.replaceAll('/', '.')
     ),
-    action.payload
+    action
   );
 }
