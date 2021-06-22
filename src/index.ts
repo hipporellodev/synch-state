@@ -5,7 +5,7 @@ import {
   enablePatches,
 } from 'immer';
 import immerPathToJsonPatchPath from './utils/immerPathToJsonPatchPath';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import DocStore from './DocStore';
 import jsonPatchPathToImmerPath from './utils/jsonPatchPathToImmerPath';
 enablePatches();
