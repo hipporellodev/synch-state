@@ -150,10 +150,13 @@ by passing name in plugin configuration to createPlugin.
     }
 
     const state = subtreeState.state;
-    if (!path) {
+    if (!path || path === "") {
       return state;
     }
-    return get(state, jsonPatchPathToImmerPath(path).join('.'));
+    return get(state, jsonPatchPathToImmerPath(path));
+    // let newState = get(state, jsonPatchPathToImmerPath(path))
+    // if(!newState) return newState;
+    // return JSON.parse(JSON.stringify(newState));
   };
   getPatches = (subtree: string) => {
     const subtreeState = this.reduxStore.getState()[subtree];

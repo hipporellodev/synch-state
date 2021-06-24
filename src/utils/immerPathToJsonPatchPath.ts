@@ -5,5 +5,5 @@ export default function immerPathToJsonPatchPath(path: SyncStatePath) {
   if (path.length === 0) {
     return '';
   }
-  return '/' + path.map(p => escapeSlashes(p)).join('/');
+  return "/"+path.join("/");
 }

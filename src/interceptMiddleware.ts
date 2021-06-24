@@ -1,4 +1,3 @@
-import { produce } from 'immer';
 import get from 'lodash.get';
 import immerPathToJsonPatchPath from './utils/immerPathToJsonPatchPath';
 import jsonPatchPathToImmerPath from './utils/jsonPatchPathToImmerPath';
