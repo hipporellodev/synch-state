@@ -33,6 +33,7 @@ function getOrAddCommand(subtree:any, command:any){
     }
     subtree.commands[command.payload.id] = existingCommand;
   }
+
   return existingCommand;
 }
 export function topReducer(state: any, action: any) {
@@ -82,7 +83,7 @@ export function topReducer(state: any, action: any) {
       //already applied
       if(alreadyApplied(subtree, action)) return;
       let patches = createPatches(action.payload.patches);
-      if(action.payload.origin == "remote"){
+      if(action.origin == "remote"){
         let newRemoteState = applyPatch(subtree.remoteState, patches, false, false).newDocument;
         subtree.confirmedCommands.push(action.payload.id);
         let existingCommand = getOrAddCommand(subtree, action)
@@ -116,7 +117,7 @@ export function topReducer(state: any, action: any) {
       else {
         subtree.state = applyPatch(subtree.state, patches, false, false).newDocument
         subtree.localCommands.push(action.payload.id);
-
+        action.origin = "local"
         getOrAddCommand(subtree, action);
       }
       return state;
