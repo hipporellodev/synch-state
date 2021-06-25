@@ -15,11 +15,11 @@ export const createObserveMiddleware = (observers: Map<number, Observer>) => {
 
     if (action.type === 'PATCHES' || action.type === "INIT") {
       observers.forEach((observer, key) => {
-        const patches = action?.payload?.path ? [action.payload] : action.payload?.patches
+        const patches = action.payload.patches
         let foundAction = patches.find((patch:any)=>{
           const payloadPath = patch.path;
 
-          if (observer.subtree !== action.payload.subtree || observer.depth < 0) {
+          if (payloadPath == null || observer.subtree !== action.payload.subtree || observer.depth < 0) {
             // Skip this observer if observer and action.payload subtrees do not match
             return false;
           }

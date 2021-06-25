@@ -112,9 +112,6 @@ by passing name in plugin configuration to createPlugin.
         )
       )
     );
-
-    console.log(reduxStore.getState());
-
     this.reduxStore = reduxStore;
     this.dispatch = reduxStore.dispatch;
     this.subscribe = reduxStore.subscribe;

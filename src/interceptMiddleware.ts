@@ -24,7 +24,7 @@ export const createInterceptMiddleware = (
 
           const payloadPath: string = patch.path;
 
-          if (
+          if (payloadPath == null ||
               interceptor.subtree !== action.payload.subtree ||
               interceptor.depth < 0
           ) {

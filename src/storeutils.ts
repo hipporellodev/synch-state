@@ -55,7 +55,6 @@ export function topReducer(state: any, action: any) {
         })
       }
       subtree.confirmedCommands = newCommandIds;
-      console.log("confirmedCommands", subtree.confirmedCommands, subtree.commands)
       subtree.confirmedCommands.forEach((confirmedCommandId:any)=>{
         let command = subtree.commands[confirmedCommandId];
         if(command) {
@@ -67,7 +66,6 @@ export function topReducer(state: any, action: any) {
       if(action.type == "INIT"){
         subtree.state = subtree.remoteState;
       }
-      console.log("AFTER INIT",state)
       return state;
     }
     case 'PATCHES': {
@@ -80,6 +78,7 @@ export function topReducer(state: any, action: any) {
       if(alreadyApplied(subtree, action)) return;
       let patches = createPatches(action.payload.patches);
       if(action.origin == "remote"){
+        console.log("localaction", action);
         let newRemoteState = applyPatch(subtree.remoteState, patches, false, false).newDocument;
         subtree.confirmedCommands.push(action.payload.id);
         let existingCommand = getOrAddCommand(subtree, action)
@@ -93,7 +92,6 @@ export function topReducer(state: any, action: any) {
             let localCommand = subtree.commands[localCommandId];
             if (localCommand && !localCommand.confirmed) {
               if (!localCommand.skipped) {
-                console.log("localCommand",localCommand)
                 let localPatches = createPatches(localCommand.payload.patches);
                 newLocalState = applyPatch(newLocalState, localPatches, false, false).newDocument;
                 allPatches.splice(allPatches.length, 0, localPatches)
