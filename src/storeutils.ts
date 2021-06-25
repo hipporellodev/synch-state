@@ -85,7 +85,7 @@ export function topReducer(state: any, action: any) {
         let notifyLocalState = existingCommand.origin != "local";
         subtree.commands[action.payload.id] = existingCommand
         if(notifyLocalState) {
-          let newLocalState = newRemoteState;
+          let newLocalState = {...subtree.state, ...JSON.parse(JSON.stringify(newRemoteState))};
           let allPatches: any[] = patches;
           subtree.localCommands.forEach((localCommandId: any) => {
             let localCommand = subtree.commands[localCommandId];
@@ -100,7 +100,7 @@ export function topReducer(state: any, action: any) {
           // @ts-ignore
 
           action.payload.patches = allPatches;
-          subtree.state = {...subtree.state, ...newLocalState};
+          subtree.state = newLocalState;
         }
         else{
           markNotConfirmedLocalAsConfirmed(subtree);
