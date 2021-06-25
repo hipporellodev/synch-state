@@ -92,9 +92,11 @@ export function topReducer(state: any, action: any) {
         subtree.commands[action.payload.id] = existingCommand
         if(notifyLocalState) {
           let allPatches: any[] = patches;
-          subtree.localCommands.forEach((localCommand: any) => {
-            if (!localCommand.confirmed) {
+          subtree.localCommands.forEach((localCommandId: any) => {
+            let localCommand = subtree.commands[localCommandId];
+            if (localCommand && !localCommand.confirmed) {
               if (!localCommand.skipped) {
+                console.log("localCommand",localCommand)
                 let localPatches = createPatches(localCommand.payload.patches);
                 allPatches.splice(allPatches.length, 0, localPatches)
               }
