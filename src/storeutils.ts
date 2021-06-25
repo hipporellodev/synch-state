@@ -78,15 +78,18 @@ export function topReducer(state: any, action: any) {
       if(alreadyApplied(subtree, action)) return;
       let patches = createPatches(action.payload.patches);
       if(action.origin == "remote"){
-        console.log("localaction", action);
+        console.log("remote action", action);
         let newRemoteState = applyPatch(subtree.remoteState, patches, false, false).newDocument;
         subtree.confirmedCommands.push(action.payload.id);
         let existingCommand = getOrAddCommand(subtree, action)
         existingCommand.confirmed = true;
         let notifyLocalState = existingCommand.origin != "local";
         subtree.commands[action.payload.id] = existingCommand
+
+        console.log("will notify local", existingCommand)
         if(notifyLocalState) {
-          let newLocalState = subtree.remoteState;
+          console.log("notifying local")
+          let newLocalState = newRemoteState;
           let allPatches: any[] = patches;
           subtree.localCommands.forEach((localCommandId: any) => {
             let localCommand = subtree.commands[localCommandId];
