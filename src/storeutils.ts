@@ -1,9 +1,5 @@
-import immerPathToJsonPatchPath from './utils/immerPathToJsonPatchPath';
 import { v4 as uuidv4 } from "uuid";
-import DocStore from './DocStore';
-import * as jsonpatch from 'fast-json-patch';
 import {applyOperation, applyPatch, applyReducer} from 'fast-json-patch';
-import jsonPatchPathToImmerPath from './utils/jsonPatchPathToImmerPath';
 function createPatches(patches:any){
   return patches;
 }
@@ -91,6 +87,7 @@ export function topReducer(state: any, action: any) {
         let notifyLocalState = existingCommand.origin != "local";
         subtree.commands[action.payload.id] = existingCommand
         if(notifyLocalState) {
+          let newLocalState = subtree.remoteState;
           let allPatches: any[] = patches;
           subtree.localCommands.forEach((localCommandId: any) => {
             let localCommand = subtree.commands[localCommandId];
@@ -98,16 +95,14 @@ export function topReducer(state: any, action: any) {
               if (!localCommand.skipped) {
                 console.log("localCommand",localCommand)
                 let localPatches = createPatches(localCommand.payload.patches);
+                newLocalState = applyPatch(newLocalState, localPatches, false, false).newDocument;
                 allPatches.splice(allPatches.length, 0, localPatches)
               }
             }
           })
-          let newLocalState = applyPatch(subtree.remoteState, allPatches, false, false).newDocument;
           // @ts-ignore
-          const [documentAtPath, compressedPatches, inversePatches] = produceWithPatches(subtree.state, (compressedDraft: any) => {
-            return newLocalState;
-          })
-          action.payload.patches = compressedPatches;
+
+          action.payload.patches = allPatches;
           subtree.state = newLocalState;
         }
         else{
@@ -138,26 +133,26 @@ export function topReducer(state: any, action: any) {
       if(command){
         command.skipped = action.type == 'UNDO';
         let allPatches:any[] = []
+        let initialRemoteState = subtree.initialRemoteState;
         subtree.confirmedCommands.forEach((command:any)=>{
           if(!command.skipped && command.type != "UNDO" && command.type != "REDO"){
             allPatches.splice(allPatches.length,0, createPatches(command.payload.patches));
+            initialRemoteState = applyPatch(initialRemoteState, createPatches(command.payload.patches), false, false).newDocument;
           }
         })
 
-        subtree.remoteState = applyPatch(subtree.initialRemoteState, allPatches, false, false).newDocument;
+        subtree.remoteState = initialRemoteState
 
+        let initialState = subtree.initialState;
         subtree.localCommands.forEach((command:any)=>{
           if(!command.confirmed && command.type != "UNDO" && command.type != "REDO"){
             allPatches.splice(allPatches.length,0, createPatches(command.payload.patches));
+            initialState = applyPatch(initialState, createPatches(command.payload.patches), false, false).newDocument;
           }
         })
-        let currentLocalState = subtree.state;
-        subtree.state = applyPatch(subtree.initialState, allPatches, false, false).newDocument;
-        // @ts-ignore
-        const [documentAtPath, compressedPatches, inversePatches] = produceWithPatches(currentLocalState, (compressedDraft: any) => {
-          return subtree.state;
-        })
-        action.payload.patches = compressedPatches;
+        subtree.state = initialState;
+
+        action.payload.patches = allPatches;
         action.type = "PATCHES";
       }
       return state;
