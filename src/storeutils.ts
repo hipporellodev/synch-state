@@ -104,7 +104,7 @@ export function topReducer(state: any, action: any) {
           // @ts-ignore
 
           action.payload.patches = allPatches;
-          subtree.state = newLocalState;
+          subtree.state = {...subtree.state, ...newLocalState};
         }
         else{
           markNotConfirmedLocalAsConfirmed(subtree);
