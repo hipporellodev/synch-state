@@ -3,6 +3,49 @@ import {applyOperation, applyPatch, applyReducer} from 'fast-json-patch';
 function createPatches(patches:any){
   return patches;
 }
+function isNumber(num:any){
+  try{
+    let res = parseInt(num)
+    return !isNaN(res);
+  }
+  catch(e){}
+  return false;
+}
+function localApplyPatches(state:any, patches:Array<any>){
+  patches.forEach(patch=>{
+    try {
+      state = applyPatch(state, [patch], false, false).newDocument
+    }catch(e){
+      if(patch.path){
+        let tmpState = state;
+        let paths:Array<string> = patch.path.split("/")
+        for(let i =1; i < paths.length; i++){
+          let path = paths[i];
+          if(tmpState[path] == null){
+            let obj:any = null;
+            if(i+1 < paths.length && (paths[i+1] == "-" || isNumber(paths[i+1]))){
+              obj = []
+              if(paths[i+1] == "-"){
+                i = i+1;
+              }
+            }
+            else{
+              obj = {}
+            }
+            tmpState[path] = obj;
+            tmpState = obj;
+          }
+          else{
+            tmpState = tmpState[path];
+          }
+        }
+      }
+      state = applyPatch(state, [patch], false, false).newDocument
+    }
+  })
+  return state;
+
+}
 function markNotConfirmedLocalAsConfirmed(subtree:any){
   let confirmed = false;
 
@@ -59,7 +102,7 @@ export function topReducer(state: any, action: any) {
         let command = subtree.commands[confirmedCommandId];
         if(command) {
           let patches = createPatches(command.payload.patches);
-          subtree.remoteState = applyPatch(subtree.remoteState, patches, false, false).newDocument
+          subtree.remoteState = localApplyPatches(subtree.remoteState, patches)
         }
       })
       markNotConfirmedLocalAsConfirmed(subtree);
@@ -78,7 +121,7 @@ export function topReducer(state: any, action: any) {
       if(alreadyApplied(subtree, action)) return;
       let patches = createPatches(action.payload.patches);
       if(action.origin == "remote"){
-        let newRemoteState = applyPatch(subtree.remoteState, patches, false, false).newDocument;
+        let newRemoteState = localApplyPatches(subtree.remoteState, patches);
         subtree.confirmedCommands.push(action.payload.id);
         let existingCommand = getOrAddCommand(subtree, action)
         existingCommand.confirmed = true;
@@ -92,7 +135,7 @@ export function topReducer(state: any, action: any) {
             if (localCommand && !localCommand.confirmed) {
               if (!localCommand.skipped) {
                 let localPatches = createPatches(localCommand.payload.patches);
-                newLocalState = applyPatch(newLocalState, localPatches, false, false).newDocument;
+                newLocalState = localApplyPatches(newLocalState, localPatches);
                 allPatches.splice(allPatches.length, 0, localPatches)
               }
             }
@@ -109,7 +152,7 @@ export function topReducer(state: any, action: any) {
         subtree.remoteState = newRemoteState;
       }
       else {
-        subtree.state = applyPatch(subtree.state, patches, false, false).newDocument
+        subtree.state = localApplyPatches(subtree.state, patches)
         subtree.localCommands.push(action.payload.id);
         action.origin = "local"
         getOrAddCommand(subtree, action);
@@ -134,7 +177,7 @@ export function topReducer(state: any, action: any) {
         subtree.confirmedCommands.forEach((command:any)=>{
           if(!command.skipped && command.type != "UNDO" && command.type != "REDO"){
             allPatches.splice(allPatches.length,0, createPatches(command.payload.patches));
-            initialRemoteState = applyPatch(initialRemoteState, createPatches(command.payload.patches), false, false).newDocument;
+            initialRemoteState = localApplyPatches(initialRemoteState, createPatches(command.payload.patches));
           }
         })
 
@@ -144,7 +187,7 @@ export function topReducer(state: any, action: any) {
         subtree.localCommands.forEach((command:any)=>{
           if(!command.confirmed && command.type != "UNDO" && command.type != "REDO"){
             allPatches.splice(allPatches.length,0, createPatches(command.payload.patches));
-            initialState = applyPatch(initialState, createPatches(command.payload.patches), false, false).newDocument;
+            initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
           }
         })
         subtree.state = initialState;
