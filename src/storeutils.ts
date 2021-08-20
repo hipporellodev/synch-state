@@ -107,7 +107,10 @@ export function topReducer(state: any, action: any) {
       })
       markNotConfirmedLocalAsConfirmed(subtree);
       if(action.type == "INIT"){
-        subtree.state = subtree.remoteState;
+        subtree.state = {
+          ...subtree.state,
+          ...subtree.remoteState
+        };
       }
       return state;
     }
