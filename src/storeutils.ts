@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import {applyOperation, applyPatch, applyReducer} from 'fast-json-patch';
+import rebaseNeeded from "utils/rebaseNeeded";
 function createPatches(patches:any){
   return patches;
 }
@@ -11,6 +12,7 @@ function isNumber(num:any){
   catch(e){}
   return false;
 }
+
 function localApplyPatches(state:any, patches:Array<any>){
   patches.forEach(patch=>{
     try {
@@ -61,6 +63,23 @@ function alreadyApplied(subtree:any, command:any){
   let existingCommand = subtree.commands[command.payload.id]
   return existingCommand != null && existingCommand.confirmed;
 }
+function applyRemainingLocalCommands(remoteState:any, localState:any, commandsRegistry:any, localCommands:any[]) {
+  let newLocalState = {...localState, ...JSON.parse(JSON.stringify(remoteState))};
+  let allPatches: any[] = [];
+  localCommands.forEach((localCommandId: any) => {
+    let localCommand = commandsRegistry[localCommandId];
+    if (localCommand && !localCommand.confirmed) {
+      if (!localCommand.skipped) {
+        let localPatches = createPatches(localCommand.payload.patches);
+        newLocalState = localApplyPatches(newLocalState, localPatches);
+        allPatches.splice(allPatches.length, 0, localPatches)
+      }
+    }
+  })
+  // @ts-ignore
+
+  return {patches:allPatches, state:newLocalState};
+}
 function getOrAddCommand(subtree:any, command:any){
   let existingCommand = subtree.commands[command.payload.id];
   if(existingCommand == null){
@@ -77,11 +96,42 @@ function getOrAddCommand(subtree:any, command:any){
 }
 export function topReducer(state: any, action: any) {
   switch (action.type) {
-    case 'INIT':
-    case 'REBASE': {
+    case 'REBASE':
+      {
       let subtree = state[action.payload.subtree];
+      if(subtree.initialSnapshotId == null) {
+        subtree.initialSnapshotId = action.payload.snapshotId;
+      }
+      let rebaseNeededSnapshotId = action.payload.snapshotId;
+      if(action.payload.snapshotId != null) {
+        action.payload.commands.forEach((command: any) => {
+          if (rebaseNeeded(rebaseNeededSnapshotId, action)) {
+              rebaseNeededSnapshotId = command.payload.snapshotId;
+          }
+        })
+      }
+      if(rebaseNeededSnapshotId != action.payload.snapshotId){
+        action.type = "REBASE_NEEDED";
+        action.payload = {snapshotId:rebaseNeededSnapshotId};
+        return state;
+      }
+
+
+      let newCommands:any = {};
+      if(subtree.localCommands != null && subtree.commands){
+        subtree.localCommands.forEach((localCommandId:string)=>{
+          let command = subtree.commands[localCommandId];
+          if(command) {
+            command.confirmed = false;
+            newCommands[localCommandId] = command;
+          }
+        })
+      }
       subtree.initialRemoteState = action.payload.data;
       subtree.remoteState = action.payload.data
+      subtree.rebaseNeeded = null;
+      subtree.commands = newCommands;
+      subtree.snapshotId  = action.payload.snapshotId;
       let newCommandIds:any[] = [];
       let commands = subtree.commands;
       if(action.payload.commands) {
@@ -106,8 +156,9 @@ export function topReducer(state: any, action: any) {
         }
       })
       markNotConfirmedLocalAsConfirmed(subtree);
-      if(action.type == "INIT"){
+      if(!subtree.inited){
         subtree.state = subtree.remoteState;
+        subtree.inited = true;
       }
       return state;
     }
@@ -127,25 +178,13 @@ export function topReducer(state: any, action: any) {
         existingCommand.confirmed = true;
         let notifyLocalState = existingCommand.origin != "local";
         subtree.commands[action.payload.id] = existingCommand
-        if(notifyLocalState) {
-          let newLocalState = {...subtree.state, ...JSON.parse(JSON.stringify(newRemoteState))};
-          let allPatches: any[] = patches;
-          subtree.localCommands.forEach((localCommandId: any) => {
-            let localCommand = subtree.commands[localCommandId];
-            if (localCommand && !localCommand.confirmed) {
-              if (!localCommand.skipped) {
-                let localPatches = createPatches(localCommand.payload.patches);
-                newLocalState = localApplyPatches(newLocalState, localPatches);
-                allPatches.splice(allPatches.length, 0, localPatches)
-              }
-            }
-          })
-          // @ts-ignore
-
+        if (notifyLocalState) {
+          let res = applyRemainingLocalCommands(newRemoteState, subtree.state, subtree.commands, subtree.localCommands);
+          let allPatches = [...patches]
+          allPatches.splice(allPatches.length, 0, res.patches)
           action.payload.patches = allPatches;
-          subtree.state = newLocalState;
-        }
-        else{
+          subtree.state = res.state;
+        } else {
           markNotConfirmedLocalAsConfirmed(subtree);
           action.type = "LOCALECHO"
         }
@@ -165,6 +204,9 @@ export function topReducer(state: any, action: any) {
         action.payload.id = uuidv4();
       }
       let subtree = state[action.payload.subtree];
+      if(action.origin != "remote"){
+        action.payload.snapshotId = subtree.initialSnapshotId;
+      }
       if(alreadyApplied(subtree, action)) return;
       let reversedCommandId = action.payload.commandId
       let command = subtree.commands[reversedCommandId]
