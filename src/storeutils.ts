@@ -159,7 +159,6 @@ export function topReducer(state: any, action: any) {
       if(!subtree.inited){
         subtree.state = {...subtree.state, ...subtree.remoteState, inited:true};
         subtree.inited = true;
-        console.log("subtree", subtree)
       }
       return state;
     }

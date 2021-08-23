@@ -133,7 +133,6 @@ by passing name in plugin configuration to createPlugin.
 
 
   dispatch(action:any){
-    console.log(action);
     if(action.payload) {
       let subtree = this.getState(action.payload.subtree);
       if (action.type == "REBASE") {
