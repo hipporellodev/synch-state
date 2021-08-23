@@ -19,6 +19,7 @@ import getNextId from './utils/getNextId';
 import { Watch, ComputeCallback } from 'types';
 import { createPostObserveMiddleware } from './postObserveMiddleware';
 import { createPostInterceptMiddleware } from './postInterceptMiddleware';
+import rebaseNeeded from "./utils/rebaseNeeded";
 
 type ReduxStore = Store<
   CombinedState<{
@@ -29,13 +30,15 @@ type ReduxStore = Store<
 
 export default class DocStore {
   reduxStore: ReduxStore;
-  dispatch: Dispatch<any>;
+  rebaseInProgressObserver:any =  null;
+  rebaseCommandId:any = null;
   subscribe: (listener: () => void) => Unsubscribe;
   plugins: Array<any>;
   private observers = new Map<number, Observer>();
   private interceptors = new Map<number, Interceptor>();
   private postObserveCallbacks: Array<() => void> = [];
   private postInterceptCallbacks: Array<() => void> = [];
+  waitingActions:Array<any> = [];
 
   constructor(
     initialDoc: {},
@@ -96,10 +99,7 @@ by passing name in plugin configuration to createPlugin.
           })
         : compose;
 
-    let reduxStore: any;
-
-    // @ts-ignore
-    reduxStore = createStore(
+    this.reduxStore = createStore(
       topReducer,
       initialState,
       composeEnhancers(
@@ -112,9 +112,7 @@ by passing name in plugin configuration to createPlugin.
         )
       )
     );
-    this.reduxStore = reduxStore;
-    this.dispatch = reduxStore.dispatch;
-    this.subscribe = reduxStore.subscribe;
+    this.subscribe = this.reduxStore.subscribe;
 
     this.plugins.forEach(plugin => {
       this.reduxStore.dispatch({
@@ -131,6 +129,66 @@ by passing name in plugin configuration to createPlugin.
       window['store'] = this;
     }
   }
+
+
+
+  dispatch(action:any){
+    if(action.payload) {
+      let subtree = this.getState(action.payload.subtree);
+      if (action.type == "REBASE") {
+        let commands = action.payload.commands;
+        if (this.rebaseCommandId && commands) {
+          let newCommands = [];
+          for (let i = 0; i < commands.length; i++) {
+            let command = commands[i];
+            if (command.payload.id == this.rebaseCommandId) {
+              break;
+            }
+            newCommands.push(command);
+          }
+          action.payload.commands = newCommands;
+        }
+        this.reduxStore.dispatch(action)
+      } else {
+        if (subtree == null || !subtree.inited || action.origin == "remote") {
+          if (!this.rebaseInProgressObserver) {
+            this.waitingActions.push(action);
+          } else {
+            if (subtree == null || !subtree.inited) {
+              this.waitingActions.push(action);
+              this.startRebaseInProgress(action.payload.subtree);
+            } else if (rebaseNeeded(subtree.snapshotId, action)) {
+              this.waitingActions.push(action);
+              this.rebaseCommandId = action.payload.id;
+              this.reduxStore.dispatch({type: "REBASE_NEEDED", payload: {snapshotId: action.payload.snapshotId}})
+              this.startRebaseInProgress(action.payload.subtree);
+            } else {
+              this.reduxStore.dispatch(action)
+            }
+          }
+        } else {
+          this.reduxStore.dispatch(action)
+        }
+      }
+    }
+    else{
+      this.reduxStore.dispatch(action)
+    }
+  }
+
+  startRebaseInProgress(subtree:any){
+    this.rebaseInProgressObserver = this.observe(subtree, "/", (value, change)=>{
+      if(change.type == "REBASE"){
+        this.rebaseInProgressObserver();
+        this.rebaseInProgressObserver = null;
+        this.waitingActions.forEach(action=>{
+          this.reduxStore.dispatch(action)
+        })
+        this.waitingActions = [];
+      }
+    })
+  }
+
   getState = (subtree: string) => {
     const subtreeState = this.reduxStore.getState()[subtree];
     if (!subtreeState) {

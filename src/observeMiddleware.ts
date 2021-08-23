@@ -13,8 +13,8 @@ export const createObserveMiddleware = (observers: Map<number, Observer>) => {
   return (store: any) => (next: any) => (action: any) => {
     const result = next(action);
 
-    if (action.type === 'PATCHES' || action.type === "INIT") {
-      const patches = action.type === "INIT"? [action.payload] : action.payload?.patches
+    if (action.type === 'PATCHES' || action.type === "REBASE") {
+      const patches = action.type === "REBASE"? [action.payload] : action.payload?.patches
       observers.forEach((observer, key) => {
 
         let foundAction = patches.find((patch:any)=>{
@@ -61,6 +61,11 @@ export const createObserveMiddleware = (observers: Map<number, Observer>) => {
           callObserver(observer, store, action);
         }
 
+      });
+    }
+    else if(action.type == "REBASE_NEEDED"){
+      observers.forEach((observer, key) => {
+        callObserver(observer, store, action);
       });
     }
 
