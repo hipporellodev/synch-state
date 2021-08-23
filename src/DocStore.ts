@@ -19,7 +19,7 @@ import getNextId from './utils/getNextId';
 import { Watch, ComputeCallback } from 'types';
 import { createPostObserveMiddleware } from './postObserveMiddleware';
 import { createPostInterceptMiddleware } from './postInterceptMiddleware';
-import rebaseNeeded from "utils/rebaseNeeded";
+import rebaseNeeded from "./utils/rebaseNeeded";
 
 type ReduxStore = Store<
   CombinedState<{
@@ -133,46 +133,47 @@ by passing name in plugin configuration to createPlugin.
 
 
   dispatch(action:any){
-    let subtree = this.getState(action.payload.subtree);
-    if(action.type == "REBASE"){
-      let commands = action.payload.commands;
-      if(this.rebaseCommandId && commands) {
-        let newCommands = [];
-        for (let i=0; i < commands.length; i++) {
-          let command = commands[i];
-          if(command.payload.id == this.rebaseCommandId){
-            break;
+    console.log(action);
+    if(action.payload) {
+      let subtree = this.getState(action.payload.subtree);
+      if (action.type == "REBASE") {
+        let commands = action.payload.commands;
+        if (this.rebaseCommandId && commands) {
+          let newCommands = [];
+          for (let i = 0; i < commands.length; i++) {
+            let command = commands[i];
+            if (command.payload.id == this.rebaseCommandId) {
+              break;
+            }
+            newCommands.push(command);
           }
-          newCommands.push(command);
+          action.payload.commands = newCommands;
         }
-        action.payload.commands = newCommands;
-      }
-      this.reduxStore.dispatch(action)
-    }
-    else {
-      if(subtree == null || !subtree.inited || action.origin == "remote"){
-        if(!this.rebaseInProgressObserver) {
-          this.waitingActions.push(action);
-        }
-        else{
-          if(subtree == null || !subtree.inited) {
-            this.waitingActions.push(action);
-            this.startRebaseInProgress(action.payload.subtree);
-          }
-          else if(rebaseNeeded(subtree.snapshotId, action)){
-            this.waitingActions.push(action);
-            this.rebaseCommandId = action.payload.id;
-            this.reduxStore.dispatch({type:"REBASE_NEEDED", payload:{snapshotId:action.payload.snapshotId}})
-            this.startRebaseInProgress(action.payload.subtree);
-          }
-          else{
-            this.reduxStore.dispatch(action)
-          }
-        }
-      }
-      else{
         this.reduxStore.dispatch(action)
+      } else {
+        if (subtree == null || !subtree.inited || action.origin == "remote") {
+          if (!this.rebaseInProgressObserver) {
+            this.waitingActions.push(action);
+          } else {
+            if (subtree == null || !subtree.inited) {
+              this.waitingActions.push(action);
+              this.startRebaseInProgress(action.payload.subtree);
+            } else if (rebaseNeeded(subtree.snapshotId, action)) {
+              this.waitingActions.push(action);
+              this.rebaseCommandId = action.payload.id;
+              this.reduxStore.dispatch({type: "REBASE_NEEDED", payload: {snapshotId: action.payload.snapshotId}})
+              this.startRebaseInProgress(action.payload.subtree);
+            } else {
+              this.reduxStore.dispatch(action)
+            }
+          }
+        } else {
+          this.reduxStore.dispatch(action)
+        }
       }
+    }
+    else{
+      this.reduxStore.dispatch(action)
     }
   }
 

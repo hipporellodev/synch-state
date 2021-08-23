@@ -13,8 +13,8 @@ export const createObserveMiddleware = (observers: Map<number, Observer>) => {
   return (store: any) => (next: any) => (action: any) => {
     const result = next(action);
 
-    if (action.type === 'PATCHES') {
-      const patches = action.payload?.patches
+    if (action.type === 'PATCHES' || action.type === "REBASE") {
+      const patches = action.type === "REBASE"? [action.payload] : action.payload?.patches
       observers.forEach((observer, key) => {
 
         let foundAction = patches.find((patch:any)=>{

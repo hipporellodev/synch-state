@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import {applyOperation, applyPatch, applyReducer} from 'fast-json-patch';
-import rebaseNeeded from "utils/rebaseNeeded";
+import rebaseNeeded from "./utils/rebaseNeeded";
 function createPatches(patches:any){
   return patches;
 }
@@ -157,8 +157,9 @@ export function topReducer(state: any, action: any) {
       })
       markNotConfirmedLocalAsConfirmed(subtree);
       if(!subtree.inited){
-        subtree.state = subtree.remoteState;
+        subtree.state = {...subtree.state, ...subtree.remoteState, inited:true};
         subtree.inited = true;
+        console.log("subtree", subtree)
       }
       return state;
     }
