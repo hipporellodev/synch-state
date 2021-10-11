@@ -20,8 +20,9 @@ function localApplyPatches(state:any, patches:Array<any>){
     }catch(e){
       if(patch.path){
         let tmpState = state;
-        let paths:Array<string> = patch.path.split("/")
+        let paths = patch.path.split("/")
         for(let i =1; i < paths.length; i++){
+          if(patch?.op === "add" && paths?.length - 1 === i) break;
           let path = paths[i];
           if(tmpState[path] == null){
             let obj:any = null;
@@ -46,7 +47,6 @@ function localApplyPatches(state:any, patches:Array<any>){
     }
   })
   return state;
-
 }
 function markNotConfirmedLocalAsConfirmed(subtree:any){
   let confirmed = false;
