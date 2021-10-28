@@ -218,8 +218,6 @@ export function topReducer(state: any, action: any) {
       getOrAddCommand(subtree, action);
       let reversedCommandId = action.payload.commandId
       let command = subtree.commands[reversedCommandId]
-
-      console.log("subtree", subtree)
       if(command){
         command.skipped = action.type == 'UNDO';
         let allPatches:any[] = []
@@ -247,6 +245,7 @@ export function topReducer(state: any, action: any) {
         subtree.state = {...subtree.state, ...initialState};
         action.payload.patches = allPatches;
         action.type = "PATCHES";
+        console.log(action)
       }
       return state;
     }
