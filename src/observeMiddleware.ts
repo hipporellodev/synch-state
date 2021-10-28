@@ -17,23 +17,33 @@ export const createObserveMiddleware = (observers: Map<number, Observer>) => {
       const patches = action.type === "REBASE"? [action.payload] : action.payload?.patches
       observers.forEach((observer, key) => {
         let foundAction = patches.find((patch:any)=>{
-          if(!observer.path.startsWith("/local")){
+          let willLog = !observer.path.startsWith("/local") && !patch.path.startsWith("/local");
+          if(willLog){
             console.log("PATCHES1", patch, observer.path)
           }
           const payloadPath = patch.path;
 
           if (payloadPath == null || observer.subtree !== action.payload.subtree || observer.depth < 0) {
             // Skip this observer if observer and action.payload subtrees do not match
+            if(willLog){
+              console.log("PATCHES1.1", false)
+            }
             return false;
           }
 
           // If path above the observer path changes call observer for all cases
           if (observer.path.startsWith(payloadPath)) {
+            if(willLog){
+              console.log("PATCHES1.2", true)
+            }
             return true;
           }
 
           // If depth x, call for x levels extra below observer path
           else if (observer.depth > 0 && observer.depth !== Infinity) {
+            if(willLog){
+              console.log("PATCHES1.3")
+            }
             const matchingLengthPayloadPathArray = jsonPatchPathToImmerPath(
                 payloadPath
             ).slice(0, jsonPatchPathToImmerPath(observer.path).length);
@@ -52,9 +62,15 @@ export const createObserveMiddleware = (observers: Map<number, Observer>) => {
 
           //If depth is infinity, call for any number of levels below observer path
           else if (observer.depth === Infinity) {
+            if(willLog){
+              console.log("PATCHES1.4")
+            }
             if (payloadPath.startsWith(observer.path)) {
               return true;
             }
+          }
+          if(willLog){
+            console.log("PATCHES1.7")
           }
           return false;
         })
