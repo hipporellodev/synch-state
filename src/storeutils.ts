@@ -72,7 +72,7 @@ function applyRemainingLocalCommands(remoteState:any, localState:any, commandsRe
       if (!localCommand.skipped) {
         let localPatches = createPatches(localCommand.payload.patches);
         newLocalState = localApplyPatches(newLocalState, localPatches);
-        allPatches.splice(allPatches.length, 0, localPatches)
+        allPatches.splice(allPatches.length, 0, ...localPatches)
       }
     }
   })
@@ -83,6 +83,7 @@ function applyRemainingLocalCommands(remoteState:any, localState:any, commandsRe
 function getOrAddCommand(subtree:any, command:any){
   let existingCommand = subtree.commands[command.payload.id];
   if(existingCommand == null){
+    command = JSON.parse(JSON.stringify(command));
     existingCommand = {
       payload:{...command.payload},
       type:command.type,
@@ -181,7 +182,7 @@ export function topReducer(state: any, action: any) {
         if (notifyLocalState) {
           let res = applyRemainingLocalCommands(newRemoteState, subtree.state, subtree.commands, subtree.localCommands);
           let allPatches = [...patches]
-          allPatches.splice(allPatches.length, 0, res.patches)
+          allPatches.splice(allPatches.length, 0, ...res.patches)
           action.payload.patches = allPatches;
           subtree.state = res.state;
         } else {
@@ -192,9 +193,13 @@ export function topReducer(state: any, action: any) {
       }
       else {
         subtree.state = localApplyPatches(subtree.state, patches)
-        subtree.localCommands.push(action.payload.id);
+        if(!patches[0].path.startsWith("/local")) {
+          subtree.localCommands.push(action.payload.id);
+          getOrAddCommand(subtree, action);
+          state.lastCommand = action;
+          state.firstSkippedCommand = null;
+        }
         action.origin = "local"
-        getOrAddCommand(subtree, action);
       }
       return state;
     }
@@ -204,38 +209,60 @@ export function topReducer(state: any, action: any) {
         action.payload.id = uuidv4();
       }
       let subtree = state[action.payload.subtree];
+      if(alreadyApplied(subtree, action)) return;
       if(action.origin != "remote"){
         action.payload.snapshotId = subtree.initialSnapshotId;
+        action.origin = "local";
+        subtree.localCommands.push(action.payload.id);
       }
-      if(alreadyApplied(subtree, action)) return;
+      else{
+        subtree.confirmedCommands.push(action.payload.id)
+      }
+      getOrAddCommand(subtree, action);
       let reversedCommandId = action.payload.commandId
       let command = subtree.commands[reversedCommandId]
-      subtree.confirmedCommands.push(action.payload.id)
-      subtree.commands.push(action.payload.id)
       if(command){
         command.skipped = action.type == 'UNDO';
         let allPatches:any[] = []
         let initialRemoteState = subtree.initialRemoteState;
-        subtree.confirmedCommands.forEach((command:any)=>{
+        subtree.confirmedCommands.forEach((commandId:any)=>{
+          let command = subtree.commands[commandId];
           if(!command.skipped && command.type != "UNDO" && command.type != "REDO"){
-            allPatches.splice(allPatches.length,0, createPatches(command.payload.patches));
+            allPatches.splice(allPatches.length,0, ...createPatches(command.payload.patches));
             initialRemoteState = localApplyPatches(initialRemoteState, createPatches(command.payload.patches));
           }
         })
 
         subtree.remoteState = initialRemoteState
 
-        let initialState = subtree.initialState;
-        subtree.localCommands.forEach((command:any)=>{
-          if(!command.confirmed && command.type != "UNDO" && command.type != "REDO"){
-            allPatches.splice(allPatches.length,0, createPatches(command.payload.patches));
-            initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
+        markNotConfirmedLocalAsConfirmed(subtree);
+        let initialState = subtree.remoteState;
+        let lastPatchesCommand = null;
+        let firstSkippedCommand:any = null;
+        subtree.localCommands.forEach((commandId:any)=>{
+          let command = subtree.commands[commandId];
+          if(!command.skipped && command.type != "UNDO" && command.type != "REDO"){
+            if(!command.confirmed) {
+              allPatches.splice(allPatches.length, 0, ...createPatches(command.payload.patches));
+              initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
+            }
+            lastPatchesCommand = command;
+            firstSkippedCommand = null;
+          }
+          else if(command.skipped && command.type != "UNDO" && command.type != "REDO") {
+            if(firstSkippedCommand == null) {
+              firstSkippedCommand = command
+            }
           }
         })
-        subtree.state = initialState;
-
+        subtree.state = {...subtree.state, ...initialState};
+        let origAction = JSON.parse(JSON.stringify(action));
         action.payload.patches = allPatches;
         action.type = "PATCHES";
+        action.origAction = origAction;
+        state.lastCommand = lastPatchesCommand;
+        state.firstSkippedCommand = firstSkippedCommand;
+        console.log(action)
       }
       return state;
     }
