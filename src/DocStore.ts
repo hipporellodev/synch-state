@@ -204,7 +204,9 @@ by passing name in plugin configuration to createPlugin.
       console.warn(`Tried to access non-existent subtree ${subtree}`);
       return undefined;
     }
-    return subtreeState.localCommands;
+    return subtreeState.localCommands.map((commandId:string)=>{
+      return subtreeState.commands[commandId];
+    });
   };
   getStateAtPath = (subtree: string, path: string) => {
     const subtreeState = this.reduxStore.getState()[subtree];
