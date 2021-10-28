@@ -63,7 +63,7 @@ export const createObserveMiddleware = (observers: Map<number, Observer>) => {
 
       });
     }
-    else if(action.type == "REBASE_NEEDED"){
+    else if(action.type == "REBASE_NEEDED" || action.type == "REDO" || action.type == "UNDO"){
       observers.forEach((observer, key) => {
         callObserver(observer, store, action);
       });
