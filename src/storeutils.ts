@@ -83,6 +83,7 @@ function applyRemainingLocalCommands(remoteState:any, localState:any, commandsRe
 function getOrAddCommand(subtree:any, command:any){
   let existingCommand = subtree.commands[command.payload.id];
   if(existingCommand == null){
+    command = JSON.parse(JSON.stringify(command));
     existingCommand = {
       payload:{...command.payload},
       type:command.type,

@@ -17,6 +17,9 @@ export const createObserveMiddleware = (observers: Map<number, Observer>) => {
       const patches = action.type === "REBASE"? [action.payload] : action.payload?.patches
       observers.forEach((observer, key) => {
         let foundAction = patches.find((patch:any)=>{
+          if(!observer.path.startsWith("/local")){
+            console.log("PATCHES1", patch, observer.path)
+          }
           const payloadPath = patch.path;
 
           if (payloadPath == null || observer.subtree !== action.payload.subtree || observer.depth < 0) {
@@ -57,7 +60,9 @@ export const createObserveMiddleware = (observers: Map<number, Observer>) => {
         })
 
         if(foundAction){
-          console.log("PATCHES2", patches, observer.path);
+          if(!observer.path.startsWith("/local")){
+            console.log("PATCHES2", patches, observer.path);
+          }
           callObserver(observer, store, action);
         }
 
