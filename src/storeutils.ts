@@ -204,16 +204,20 @@ export function topReducer(state: any, action: any) {
         action.payload.id = uuidv4();
       }
       let subtree = state[action.payload.subtree];
+      if(alreadyApplied(subtree, action)) return;
       if(action.origin != "remote"){
         action.payload.snapshotId = subtree.initialSnapshotId;
         action.origin = "local";
         subtree.localCommands.push(action.payload.id);
       }
-      if(alreadyApplied(subtree, action)) return;
+      else{
+        subtree.confirmedCommands.push(action.payload.id)
+      }
+      getOrAddCommand(subtree, action);
       let reversedCommandId = action.payload.commandId
       let command = subtree.commands[reversedCommandId]
-      subtree.confirmedCommands.push(action.payload.id)
-      getOrAddCommand(subtree, action);
+
+
       if(command){
         command.skipped = action.type == 'UNDO';
         let allPatches:any[] = []
@@ -236,8 +240,8 @@ export function topReducer(state: any, action: any) {
             initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
           }
         })
-        subtree.state = initialState;
-
+        subtree.state = {...initialState};
+        markNotConfirmedLocalAsConfirmed(subtree);
         action.payload.patches = allPatches;
         action.type = "PATCHES";
       }
