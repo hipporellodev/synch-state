@@ -256,8 +256,10 @@ export function topReducer(state: any, action: any) {
           }
         })
         subtree.state = {...subtree.state, ...initialState};
+        let origAction = JSON.parse(JSON.stringify(action));
         action.payload.patches = allPatches;
         action.type = "PATCHES";
+        action.origAction = origAction;
         state.lastCommand = lastPatchesCommand;
         state.firstSkippedCommand = firstSkippedCommand;
         console.log(action)
