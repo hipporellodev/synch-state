@@ -226,7 +226,6 @@ export function topReducer(state: any, action: any) {
         subtree.confirmedCommands.forEach((commandId:any)=>{
           let command = subtree.commands[commandId];
           if(!command.skipped && command.type != "UNDO" && command.type != "REDO"){
-            console.log("confirmedcommand", command)
             allPatches.splice(allPatches.length,0, createPatches(command.payload.patches));
             initialRemoteState = localApplyPatches(initialRemoteState, createPatches(command.payload.patches));
           }
@@ -245,9 +244,10 @@ export function topReducer(state: any, action: any) {
             lastPatchesCommand = command;
           }
         })
-        subtree.state = {...subtree.state, ...initialState, lastCommand:lastPatchesCommand};
+        subtree.state = {...subtree.state, ...initialState};
         action.payload.patches = allPatches;
         action.type = "PATCHES";
+        state.lastCommand = lastPatchesCommand;
         console.log(action)
       }
       return state;
