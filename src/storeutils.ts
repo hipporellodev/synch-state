@@ -195,6 +195,7 @@ export function topReducer(state: any, action: any) {
         if(!patches[0].path.startsWith("/local")) {
           subtree.localCommands.push(action.payload.id);
           getOrAddCommand(subtree, action);
+          state.lastCommand = action;
         }
         action.origin = "local"
       }
@@ -235,14 +236,16 @@ export function topReducer(state: any, action: any) {
 
         markNotConfirmedLocalAsConfirmed(subtree);
         let initialState = subtree.remoteState;
+        let lastPatchesCommand = null;
         subtree.localCommands.forEach((commandId:any)=>{
           let command = subtree.commands[commandId];
           if(!command.confirmed && !command.skipped && command.type != "UNDO" && command.type != "REDO"){
             allPatches.splice(allPatches.length,0, createPatches(command.payload.patches));
             initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
+            lastPatchesCommand = command;
           }
         })
-        subtree.state = {...subtree.state, ...initialState};
+        subtree.state = {...subtree.state, ...initialState, lastCommand:lastPatchesCommand};
         action.payload.patches = allPatches;
         action.type = "PATCHES";
         console.log(action)
