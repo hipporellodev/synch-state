@@ -228,7 +228,7 @@ export function topReducer(state: any, action: any) {
 
         subtree.remoteState = initialRemoteState
 
-        let initialState = subtree.initialState;
+        let initialState = subtree.remoteState;
         subtree.localCommands.forEach((commandId:any)=>{
           let command = subtree.commands[commandId];
           if(!command.confirmed && command.type != "UNDO" && command.type != "REDO"){
