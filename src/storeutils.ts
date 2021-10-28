@@ -206,12 +206,14 @@ export function topReducer(state: any, action: any) {
       let subtree = state[action.payload.subtree];
       if(action.origin != "remote"){
         action.payload.snapshotId = subtree.initialSnapshotId;
+        action.origin = "local";
+        subtree.localCommands.push(action.payload.id);
       }
       if(alreadyApplied(subtree, action)) return;
       let reversedCommandId = action.payload.commandId
       let command = subtree.commands[reversedCommandId]
       subtree.confirmedCommands.push(action.payload.id)
-      subtree.commands.push(action.payload.id)
+      getOrAddCommand(subtree, action);
       if(command){
         command.skipped = action.type == 'UNDO';
         let allPatches:any[] = []
