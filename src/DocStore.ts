@@ -53,15 +53,7 @@ export default class DocStore {
         confirmedCommands: [],
         commands:{},
         remoteState:initialDoc
-      },
-      localdoc: {
-        state: {},
-        patches: [],
-        localCommands:[],
-        confirmedCommands: [],
-        commands:{},
-        remoteState:initialDoc
-      },
+      }
     };
 
     const pluginNames: Array<string> = [];

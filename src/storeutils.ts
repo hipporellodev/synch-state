@@ -243,7 +243,7 @@ export function topReducer(state: any, action: any) {
             initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
           }
         })
-        subtree.state = {...initialState};
+        subtree.state = {...subtree.state, ...initialState};
         action.payload.patches = allPatches;
         action.type = "PATCHES";
       }
