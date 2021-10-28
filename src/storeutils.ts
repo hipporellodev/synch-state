@@ -218,7 +218,8 @@ export function topReducer(state: any, action: any) {
         command.skipped = action.type == 'UNDO';
         let allPatches:any[] = []
         let initialRemoteState = subtree.initialRemoteState;
-        subtree.confirmedCommands.forEach((command:any)=>{
+        subtree.confirmedCommands.forEach((commandId:any)=>{
+          let command = subtree.commands[commandId];
           if(!command.skipped && command.type != "UNDO" && command.type != "REDO"){
             allPatches.splice(allPatches.length,0, createPatches(command.payload.patches));
             initialRemoteState = localApplyPatches(initialRemoteState, createPatches(command.payload.patches));
@@ -228,7 +229,8 @@ export function topReducer(state: any, action: any) {
         subtree.remoteState = initialRemoteState
 
         let initialState = subtree.initialState;
-        subtree.localCommands.forEach((command:any)=>{
+        subtree.localCommands.forEach((commandId:any)=>{
+          let command = subtree.commands[commandId];
           if(!command.confirmed && command.type != "UNDO" && command.type != "REDO"){
             allPatches.splice(allPatches.length,0, createPatches(command.payload.patches));
             initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
