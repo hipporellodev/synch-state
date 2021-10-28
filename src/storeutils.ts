@@ -196,6 +196,7 @@ export function topReducer(state: any, action: any) {
           subtree.localCommands.push(action.payload.id);
           getOrAddCommand(subtree, action);
           state.lastCommand = action;
+          state.firstSkippedCommand = null;
         }
         action.origin = "local"
       }
@@ -236,6 +237,7 @@ export function topReducer(state: any, action: any) {
         markNotConfirmedLocalAsConfirmed(subtree);
         let initialState = subtree.remoteState;
         let lastPatchesCommand = null;
+        let firstSkippedCommand:any = null;
         subtree.localCommands.forEach((commandId:any)=>{
           let command = subtree.commands[commandId];
           if(!command.skipped && command.type != "UNDO" && command.type != "REDO"){
@@ -244,12 +246,19 @@ export function topReducer(state: any, action: any) {
               initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
             }
             lastPatchesCommand = command;
+            firstSkippedCommand = null;
+          }
+          else if(command.skipped && command.type != "UNDO" && command.type != "REDO") {
+            if(firstSkippedCommand == null) {
+              firstSkippedCommand = command
+            }
           }
         })
         subtree.state = {...subtree.state, ...initialState};
         action.payload.patches = allPatches;
         action.type = "PATCHES";
         state.lastCommand = lastPatchesCommand;
+        state.firstSkippedCommand = firstSkippedCommand;
         console.log(action)
       }
       return state;
