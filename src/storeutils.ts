@@ -72,7 +72,7 @@ function applyRemainingLocalCommands(remoteState:any, localState:any, commandsRe
       if (!localCommand.skipped) {
         let localPatches = createPatches(localCommand.payload.patches);
         newLocalState = localApplyPatches(newLocalState, localPatches);
-        allPatches.splice(allPatches.length, 0, localPatches)
+        allPatches.splice(allPatches.length, 0, ...localPatches)
       }
     }
   })
@@ -182,7 +182,7 @@ export function topReducer(state: any, action: any) {
         if (notifyLocalState) {
           let res = applyRemainingLocalCommands(newRemoteState, subtree.state, subtree.commands, subtree.localCommands);
           let allPatches = [...patches]
-          allPatches.splice(allPatches.length, 0, res.patches)
+          allPatches.splice(allPatches.length, 0, ...res.patches)
           action.payload.patches = allPatches;
           subtree.state = res.state;
         } else {
@@ -228,7 +228,7 @@ export function topReducer(state: any, action: any) {
         subtree.confirmedCommands.forEach((commandId:any)=>{
           let command = subtree.commands[commandId];
           if(!command.skipped && command.type != "UNDO" && command.type != "REDO"){
-            allPatches.splice(allPatches.length,0, createPatches(command.payload.patches));
+            allPatches.splice(allPatches.length,0, ...createPatches(command.payload.patches));
             initialRemoteState = localApplyPatches(initialRemoteState, createPatches(command.payload.patches));
           }
         })
@@ -243,7 +243,7 @@ export function topReducer(state: any, action: any) {
           let command = subtree.commands[commandId];
           if(!command.skipped && command.type != "UNDO" && command.type != "REDO"){
             if(!command.confirmed) {
-              allPatches.splice(allPatches.length, 0, createPatches(command.payload.patches));
+              allPatches.splice(allPatches.length, 0, ...createPatches(command.payload.patches));
               initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
             }
             lastPatchesCommand = command;
