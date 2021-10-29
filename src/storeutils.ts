@@ -164,6 +164,10 @@ export function topReducer(state: any, action: any) {
       return state;
     }
     case 'PATCHES': {
+      if(action.payload.patches == null || action.payload.patches.length == 0){
+        action.type = "IGNORED";
+        return state;
+      }
       if(action.payload.id == null){
         action.payload.id = uuidv4();
       }
