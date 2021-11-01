@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import {applyOperation, applyPatch, applyReducer} from 'fast-json-patch';
 import rebaseNeeded from "./utils/rebaseNeeded";
-import _ from "lodash"
+import isEqual from "lodash/isEqual"
 function createPatches(patches:any){
   return patches;
 }
@@ -200,7 +200,7 @@ export function topReducer(state: any, action: any) {
         let prevState = subtree.state;
         let newState = localApplyPatches(subtree.state, patches)
 
-        if(_.isEqual(prevState, newState)){
+        if(isEqual(prevState, newState)){
           action.type = "IGNORE"
           return state;
         }
