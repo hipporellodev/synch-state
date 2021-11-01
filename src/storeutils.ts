@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import {applyOperation, applyPatch, applyReducer} from 'fast-json-patch';
 import rebaseNeeded from "./utils/rebaseNeeded";
+import _ from "lodash"
 function createPatches(patches:any){
   return patches;
 }
@@ -196,7 +197,14 @@ export function topReducer(state: any, action: any) {
         subtree.remoteState = newRemoteState;
       }
       else {
-        subtree.state = localApplyPatches(subtree.state, patches)
+        let prevState = subtree.state;
+        let newState = localApplyPatches(subtree.state, patches)
+
+        if(_.isEqual(prevState, newState)){
+          action.type = "IGNORE"
+          return state;
+        }
+        subtree.state = newState;
         if(!patches[0].path.startsWith("/local")) {
           subtree.localCommands.push(action.payload.id);
           getOrAddCommand(subtree, action);

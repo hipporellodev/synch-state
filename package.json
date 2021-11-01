@@ -48,7 +48,7 @@
     "@types/uuid": "^8.3.0",
     "fast-json-patch": "^3.0.0-1",
     "immer": "^9.0.3",
-    "lodash.get": "^4.4.2",
+    "lodash": "^4.4.2",
     "redux": "^4.0.5"
   }
 }
