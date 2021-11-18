@@ -15,6 +15,7 @@ function isNumber(num:any){
 }
 
 function localApplyPatches(state:any, patches:Array<any>){
+  if(!patches?.length) return state;
   patches.forEach(patch=>{
     try {
       state = applyPatch(state, [patch], false, false).newDocument
