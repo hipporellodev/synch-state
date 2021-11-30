@@ -14,7 +14,7 @@ function isNumber(num:any){
   return false;
 }
 
-function localApplyPatches(state:any, patches:Array<any>){
+export function localApplyPatches(state:any, patches:Array<any>){
   if(!patches?.length) return state;
   patches.forEach(patch=>{
     try {
