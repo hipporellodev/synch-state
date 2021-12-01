@@ -236,17 +236,15 @@ export function topReducer(state: any, action: any) {
       let command = subtree.commands[reversedCommandId]
       if(command){
         command.skipped = action.type == 'UNDO';
-        console.log("skipped command", command);
         let allPatches:any[] = []
         let initialRemoteState = subtree.initialRemoteState;
         subtree.confirmedCommands.forEach((commandId:any)=>{
           let command = subtree.commands[commandId];
-          if(!command.skipped && command.type != "UNDO" && command.type != "REDO"){
-            allPatches.splice(allPatches.length,0, ...createPatches(command.payload.patches));
-            initialRemoteState = localApplyPatches(initialRemoteState, createPatches(command.payload.patches));
+          if(command.type != "UNDO" && command.type != "REDO"){
+            allPatches.splice(allPatches.length, 0, ...createPatches(command.payload.patches));
           }
-          if(command.skipped){
-            console.log("confirmed skipped ", command)
+          if(!command.skipped && command.type != "UNDO" && command.type != "REDO"){
+            initialRemoteState = localApplyPatches(initialRemoteState, createPatches(command.payload.patches));
           }
         })
 
@@ -258,9 +256,11 @@ export function topReducer(state: any, action: any) {
         let firstSkippedCommand:any = null;
         subtree.localCommands.forEach((commandId:any)=>{
           let command = subtree.commands[commandId];
+          if(!command.confirmed && command.type != "UNDO" && command.type != "REDO"){
+            allPatches.splice(allPatches.length, 0, ...createPatches(command.payload.patches));
+          }
           if (!command.skipped && command.type != "UNDO" && command.type != "REDO") {
             if (!command.confirmed) {
-              allPatches.splice(allPatches.length, 0, ...createPatches(command.payload.patches));
               initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
             }
             lastPatchesCommand = command;
@@ -269,9 +269,6 @@ export function topReducer(state: any, action: any) {
             if (firstSkippedCommand == null) {
               firstSkippedCommand = command
             }
-          }
-          if(command.skipped){
-            console.log("local skipped ", command)
           }
         })
         subtree.state = {...subtree.state, ...initialState};
