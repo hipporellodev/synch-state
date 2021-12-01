@@ -236,6 +236,7 @@ export function topReducer(state: any, action: any) {
       let command = subtree.commands[reversedCommandId]
       if(command){
         command.skipped = action.type == 'UNDO';
+        console.log("skipped command", command);
         let allPatches:any[] = []
         let initialRemoteState = subtree.initialRemoteState;
         subtree.confirmedCommands.forEach((commandId:any)=>{
