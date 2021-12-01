@@ -244,6 +244,9 @@ export function topReducer(state: any, action: any) {
             allPatches.splice(allPatches.length,0, ...createPatches(command.payload.patches));
             initialRemoteState = localApplyPatches(initialRemoteState, createPatches(command.payload.patches));
           }
+          if(command.skipped){
+            console.log("confirmed skipped ", command)
+          }
         })
 
         subtree.remoteState = initialRemoteState
@@ -254,19 +257,20 @@ export function topReducer(state: any, action: any) {
         let firstSkippedCommand:any = null;
         subtree.localCommands.forEach((commandId:any)=>{
           let command = subtree.commands[commandId];
-          if(!command.confirmed) {
-            if (!command.skipped && command.type != "UNDO" && command.type != "REDO") {
-              if (!command.confirmed) {
-                allPatches.splice(allPatches.length, 0, ...createPatches(command.payload.patches));
-                initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
-              }
-              lastPatchesCommand = command;
-              firstSkippedCommand = null;
-            } else if (command.skipped && command.type != "UNDO" && command.type != "REDO") {
-              if (firstSkippedCommand == null) {
-                firstSkippedCommand = command
-              }
+          if (!command.skipped && command.type != "UNDO" && command.type != "REDO") {
+            if (!command.confirmed) {
+              allPatches.splice(allPatches.length, 0, ...createPatches(command.payload.patches));
+              initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
             }
+            lastPatchesCommand = command;
+            firstSkippedCommand = null;
+          } else if (command.skipped && command.type != "UNDO" && command.type != "REDO") {
+            if (firstSkippedCommand == null) {
+              firstSkippedCommand = command
+            }
+          }
+          if(command.skipped){
+            console.log("local skipped ", command)
           }
         })
         subtree.state = {...subtree.state, ...initialState};
