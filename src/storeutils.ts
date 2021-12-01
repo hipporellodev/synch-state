@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import {applyOperation, applyPatch, applyReducer} from 'fast-json-patch';
 import rebaseNeeded from "./utils/rebaseNeeded";
-import _ from "lodash"
+import isEqual from "lodash/isEqual"
 function createPatches(patches:any){
   return patches;
 }
@@ -14,7 +14,8 @@ function isNumber(num:any){
   return false;
 }
 
-function localApplyPatches(state:any, patches:Array<any>){
+export function localApplyPatches(state:any, patches:Array<any>){
+  if(!patches?.length) return state;
   patches.forEach(patch=>{
     try {
       state = applyPatch(state, [patch], false, false).newDocument
@@ -200,7 +201,7 @@ export function topReducer(state: any, action: any) {
         let prevState = subtree.state;
         let newState = localApplyPatches(subtree.state, patches)
 
-        if(_.isEqual(prevState, newState)){
+        if(isEqual(prevState, newState)){
           action.type = "IGNORE"
           return state;
         }

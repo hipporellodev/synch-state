@@ -10,7 +10,7 @@ import {
 } from 'redux';
 import { createInterceptMiddleware, Interceptor } from './interceptMiddleware';
 import { createObserveMiddleware, Observer } from './observeMiddleware';
-import get from 'lodash.get';
+import get from 'lodash/get';
 import useSyncState from './storeMethods/useSyncState';
 import { SyncStatePath } from './index';
 import removeFirstElement from './utils/jsonPatchPathToImmerPath';
