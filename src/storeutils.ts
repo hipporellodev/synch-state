@@ -253,17 +253,18 @@ export function topReducer(state: any, action: any) {
         let firstSkippedCommand:any = null;
         subtree.localCommands.forEach((commandId:any)=>{
           let command = subtree.commands[commandId];
-          if(!command.skipped && command.type != "UNDO" && command.type != "REDO"){
-            if(!command.confirmed) {
-              allPatches.splice(allPatches.length, 0, ...createPatches(command.payload.patches));
-              initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
-            }
-            lastPatchesCommand = command;
-            firstSkippedCommand = null;
-          }
-          else if(command.skipped && command.type != "UNDO" && command.type != "REDO") {
-            if(firstSkippedCommand == null) {
-              firstSkippedCommand = command
+          if(!command.confirmed) {
+            if (!command.skipped && command.type != "UNDO" && command.type != "REDO") {
+              if (!command.confirmed) {
+                allPatches.splice(allPatches.length, 0, ...createPatches(command.payload.patches));
+                initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
+              }
+              lastPatchesCommand = command;
+              firstSkippedCommand = null;
+            } else if (command.skipped && command.type != "UNDO" && command.type != "REDO") {
+              if (firstSkippedCommand == null) {
+                firstSkippedCommand = command
+              }
             }
           }
         })
