@@ -185,6 +185,7 @@ export function topReducer(state: any, action: any) {
         existingCommand.confirmed = true;
         let notifyLocalState = existingCommand.origin != "local";
         subtree.commands[action.payload.id] = existingCommand
+        markNotConfirmedLocalAsConfirmed(subtree);
         if (notifyLocalState) {
           let res = applyRemainingLocalCommands(newRemoteState, subtree.state, subtree.commands, subtree.localCommands);
           let allPatches = [...patches]
@@ -192,7 +193,6 @@ export function topReducer(state: any, action: any) {
           action.payload.patches = allPatches;
           subtree.state = res.state;
         } else {
-          markNotConfirmedLocalAsConfirmed(subtree);
           action.type = "LOCALECHO"
         }
         subtree.remoteState = newRemoteState;
