@@ -151,7 +151,7 @@ by passing name in plugin configuration to createPlugin.
         this.reduxStore.dispatch(action)
       } else {
         if (subtree == null || !subtree.inited || action.origin == "remote") {
-          if (!this.rebaseInProgressObserver) {
+          if (this.rebaseInProgressObserver) {
             this.waitingActions.push(action);
           } else {
             if (subtree == null || !subtree.inited) {
