@@ -278,7 +278,6 @@ export function topReducer(state: any, action: any) {
         action.origAction = origAction;
         state.lastCommand = lastPatchesCommand;
         state.firstSkippedCommand = firstSkippedCommand;
-        console.log(action)
       }
       return state;
     }
