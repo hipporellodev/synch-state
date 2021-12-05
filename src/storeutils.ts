@@ -1,17 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
-import {applyOperation, applyPatch, applyReducer} from 'fast-json-patch';
+import {applyPatch} from 'fast-json-patch';
 import rebaseNeeded from "./utils/rebaseNeeded";
 import isEqual from "lodash/isEqual"
 function createPatches(patches:any){
   return patches;
 }
 function isNumber(num:any){
-  try{
-    let res = parseInt(num)
-    return !isNaN(res);
-  }
-  catch(e){}
-  return false;
+  return !isNaN(parseFloat(num)) && isFinite(num);
 }
 
 export function localApplyPatches(state:any, patches:Array<any>){
