@@ -6,7 +6,7 @@ function createPatches(patches:any){
   if(patches == null){
     return [];
   }
-  patches = patches.filter(patch=>{
+  patches = patches.filter((patch:any)=>{
     return patch != null
   })
   return patches;
