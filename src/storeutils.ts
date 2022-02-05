@@ -125,8 +125,6 @@ export function topReducer(state: any, action: any) {
       }
       if(rebaseNeededSnapshotId != action.payload.snapshotId){
         action.type = "REBASE_NEEDED";
-        action.sid = action.sid;
-        action.uid = action.uid
         action.payload = {snapshotId:rebaseNeededSnapshotId};
         return state;
       }
@@ -232,7 +230,7 @@ export function topReducer(state: any, action: any) {
 
           updateUndoRedoIndex(subtree, subtree.undoRedoCommandsList.length-1);
         }
-        if(subtree.uid) {
+        if(action.origin != "remote" && subtree.uid) {
           action.uid = subtree.uid
           action.sid = subtree.sid
         }
@@ -249,7 +247,7 @@ export function topReducer(state: any, action: any) {
       if(alreadyApplied(subtree, action)) return;
       if(action.origin != "remote"){
         action.payload.snapshotId = subtree.initialSnapshotId;
-        if(subtree.uid) {
+        if(action.origin != "remote" && subtree.uid) {
           action.uid = subtree.uid
           action.sid = subtree.sid
         }
