@@ -140,7 +140,7 @@ by passing name in plugin configuration to createPlugin.
   }
 
   debounceProcess = (data:any, callback:Function) => {
-    if(data.origin != "remote" && data.payload && data.payload.patches != null && data.payload.patches.length === 1 && data.payload.patches[0].path && data.payload.patches[0].path.startsWith("/app") && (data.payload.patches[0].op === "add" || data.payload.patches[0].op === "replace")){
+    if(data.origin != "remote" && data.payload && data.payload.patches != null && data.payload.patches.length === 1 && data.payload.patches[0].path && data.payload.patches[0].path.startsWith("/app") && (data.payload.patches[0].op === "replace")){
       if((this.latestPatches != null && this.latestPatches.payload.patches[0].path !==  data.payload.patches[0].path)){
         callback(this.latestPatches);
       }
