@@ -187,12 +187,12 @@ export function topReducer(state: any, action: any) {
       //already applied
       if(alreadyApplied(subtree, action)) return;
 
-      if(action.origin == "remote"){
+      if(action.sid != subtree.sid){
         let newRemoteState = localApplyPatches(subtree.remoteState, patches);
         subtree.confirmedCommands.push(action.payload.id);
         let existingCommand = getOrAddCommand(subtree, action)
         existingCommand.confirmed = true;
-        let notifyLocalState = existingCommand.origin != "local";
+        let notifyLocalState = existingCommand.sid != subtree.sid;
         subtree.commands[action.payload.id] = existingCommand
         markNotConfirmedLocalAsConfirmed(subtree);
         if (notifyLocalState) {
@@ -244,7 +244,7 @@ export function topReducer(state: any, action: any) {
       }
       let subtree = state[action.payload.subtree];
       if(alreadyApplied(subtree, action)) return;
-      if(action.origin != "remote"){
+      if(action.sid == subtree.sid){
         action.payload.snapshotId = subtree.initialSnapshotId;
         action.origin = "local";
         if(subtree.uid) {
