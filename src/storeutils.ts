@@ -124,6 +124,8 @@ export function topReducer(state: any, action: any) {
       }
       if(rebaseNeededSnapshotId != action.payload.snapshotId){
         action.type = "REBASE_NEEDED";
+        action.sid = action.sid;
+        action.uid = action.uid
         action.payload = {snapshotId:rebaseNeededSnapshotId};
         return state;
       }
@@ -301,6 +303,8 @@ export function topReducer(state: any, action: any) {
         let origAction = JSON.parse(JSON.stringify(action));
         action.payload.patches = allPatches;
         action.type = "PATCHES";
+        action.sid = origAction.sid;
+        action.uid = origAction.uid;
         action.origAction = origAction;
       }
       return state;
