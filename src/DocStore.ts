@@ -207,7 +207,7 @@ by passing name in plugin configuration to createPlugin.
     if(subtreeState.hasUndo){
       this.dispatch({type: "UNDO", payload:{subtree: subtree, commandId:subtreeState.undoRedoCommandsList[subtreeState.undoRedoIndex]}})
     }
-  }
+  };
 
   redo(subtree:string){
     const subtreeState = this.reduxStore.getState()[subtree];
@@ -218,7 +218,7 @@ by passing name in plugin configuration to createPlugin.
     if(subtreeState.hasRedo){
       this.dispatch({type: "REDO", payload:{subtree: subtree, commandId:subtreeState.undoRedoCommandsList[subtreeState.undoRedoIndex+1]}})
     }
-  }
+  };
 
   getLocalCommands = (subtree: string) => {
     const subtreeState = this.reduxStore.getState()[subtree];
