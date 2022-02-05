@@ -139,33 +139,27 @@ by passing name in plugin configuration to createPlugin.
     }
   }
 
-  debounceProcess = (data:any, callback:Function) => {
+  debounceProcess = (data:any) => {
     if(data.origin != "remote" && data.payload && data.payload.patches != null && data.payload.patches.length === 1 && data.payload.patches[0].path && data.payload.patches[0].path.startsWith("/app") && (data.payload.patches[0].op === "replace")){
       if((this.latestPatches != null && this.latestPatches.payload.patches[0].path !==  data.payload.patches[0].path)){
-        callback(this.latestPatches);
+        this._dispatch(this.latestPatches);
       }
       this.latestPatches = data;
       this.debounceProcessId?.cancel();
       this.debounceProcessId = debounce(()=>{
-        callback(this.latestPatches);
+        this._dispatch(this.latestPatches);
         this.latestPatches = null;
       }, 2000);
       this.debounceProcessId();
     }
     else{
-      this.debounceProcessId?.cancel();
-      if(this.latestPatches != null){
-        callback(this.latestPatches);
-      }
-      this.latestPatches = null;
-      callback(data);
+      this.triggerDebounce();
+      this._dispatch(data);
     }
   }
 
   dispatch(action:any){
-    this.debounceProcess(action, (data:any)=>{
-      this._dispatch(data);
-    })
+    this.debounceProcess(action)
   }
   _dispatch(action:any){
     if(action.payload) {
@@ -260,6 +254,7 @@ by passing name in plugin configuration to createPlugin.
       console.warn(`Tried to access non-existent subtree ${subtree}`);
       return null;
     }
+    this.triggerDebounce();
     let command = null;
     if(subtreeState.hasUndo){
       command = subtreeState.undoRedoCommandsList[subtreeState.undoRedoIndex];
@@ -274,6 +269,7 @@ by passing name in plugin configuration to createPlugin.
       console.warn(`Tried to access non-existent subtree ${subtree}`);
       return null;
     }
+    this.triggerDebounce();
     let command = null;
     if(subtreeState.hasRedo){
       command = subtreeState.undoRedoCommandsList[subtreeState.undoRedoIndex+1];
@@ -458,4 +454,12 @@ by passing name in plugin configuration to createPlugin.
       }
     };
   };
+
+  private triggerDebounce() {
+    this.debounceProcessId?.cancel();
+    if(this.latestPatches != null){
+      this._dispatch(this.latestPatches);
+    }
+    this.latestPatches = null;
+  }
 }
