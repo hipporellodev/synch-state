@@ -167,6 +167,7 @@ by passing name in plugin configuration to createPlugin.
       if(action.origin != "remote" && action.sid == null){
         action.sid = subtree.sid;
         action.uid = subtree.uid;
+        action.dt = Date.now();
       }
       if (action.type == "REBASE") {
         let commands = action.payload.commands;
