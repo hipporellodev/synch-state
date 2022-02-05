@@ -3,6 +3,12 @@ import {applyPatch} from 'fast-json-patch';
 import rebaseNeeded from "./utils/rebaseNeeded";
 import isEqual from "lodash/isEqual"
 function createPatches(patches:any){
+  if(patches == null){
+    return [];
+  }
+  patches = patches.filter(patch=>{
+    return patch != null
+  })
   return patches;
 }
 function isNumber(num:any){
@@ -175,11 +181,12 @@ export function topReducer(state: any, action: any) {
       if(action.payload.id == null){
         action.payload.id = uuidv4();
       }
-
+      let patches = createPatches(action.payload.patches);
+      action.payload.patches = patches;
       let subtree = state[action.payload.subtree];
       //already applied
       if(alreadyApplied(subtree, action)) return;
-      let patches = createPatches(action.payload.patches);
+
       if(action.origin == "remote"){
         let newRemoteState = localApplyPatches(subtree.remoteState, patches);
         subtree.confirmedCommands.push(action.payload.id);
