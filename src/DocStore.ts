@@ -41,7 +41,7 @@ export default class DocStore {
   waitingActions:Array<any> = [];
 
   constructor(
-    initialDoc: {}, sessionId,
+    initialDoc: {}, sessionId:string,
     topReducer: any,
     pluginCreators: Array<any> = []
   ) {
