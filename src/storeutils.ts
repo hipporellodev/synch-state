@@ -8,7 +8,7 @@ function createPatches(patches:any){
 function isNumber(num:any){
   return !isNaN(parseFloat(num)) && isFinite(num);
 }
-function updateUndoRedoIndex(state, newIndex){
+function updateUndoRedoIndex(state:any, newIndex:number){
   state.undoRedoIndex = newIndex;
   state.hasUndo = state.undoRedoIndex >= 0;
   state.hasRedo = state.undoRedoCommandsList.length -1 > state.undoRedoIndex;
