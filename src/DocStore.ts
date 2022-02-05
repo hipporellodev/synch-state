@@ -163,7 +163,7 @@ by passing name in plugin configuration to createPlugin.
   }
 
   dispatch(action:any){
-    this.debounceProcess(action, (data)=>{
+    this.debounceProcess(action, (data:any)=>{
       this._dispatch(data);
     })
   }
