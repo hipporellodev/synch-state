@@ -139,7 +139,7 @@ by passing name in plugin configuration to createPlugin.
 
   dispatch(action:any){
     if(action.payload) {
-      let subtree = this.getState(action.payload.subtree);
+      let subtree = this.reduxStore.getState()[action.payload.subtree];
       if(action.sid == null){
         action.sid = subtree.sid;
         action.uid = subtree.uid;
