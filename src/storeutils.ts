@@ -312,10 +312,13 @@ export function topReducer(state: any, action: any) {
       return state;
     }
     case 'CREATE_SUBTREE': {
+      let subTree = state[action.payload.subtree];
       state[action.payload.subtree] = {
         state: action.payload.initialState,
         localCommands: [],
         undoRedoIndex:-1,
+        sid:subTree.sid,
+        uid:subTree.uid,
         hasRedo:false,
         hasUndo:false,
         undoRedoCommandsList: [],
