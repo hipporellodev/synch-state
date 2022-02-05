@@ -208,12 +208,12 @@ export function topReducer(state: any, action: any) {
         if(!patches[0].path.startsWith("/local")) {
           subtree.localCommands.push(action.payload.id);
           getOrAddCommand(subtree, action);
-          let undoToBeDeleted = state.undoRedoCommandsList.undoRedoIndex+1;
-          if(undoToBeDeleted < state.undoRedoCommandsList.length) {
-            state.undoRedoCommandsList = state.undoRedoCommandsList.splice(undoToBeDeleted, state.undoRedoCommandsList.length-undoToBeDeleted)
+          let undoToBeDeleted = subtree.undoRedoIndex+1;
+          if(undoToBeDeleted < subtree.undoRedoCommandsList.length) {
+            subtree.undoRedoCommandsList = subtree.undoRedoCommandsList.splice(undoToBeDeleted, subtree.undoRedoCommandsList.length-undoToBeDeleted)
           }
-          state.undoRedoCommandsList.push(action.payload.id)
-          updateUndoRedoIndex(state, state.undoRedoCommandsList.length-1);
+          subtree.undoRedoCommandsList.push(action.payload.id)
+          updateUndoRedoIndex(state, subtree.undoRedoCommandsList.length-1);
         }
         action.origin = "local"
       }
@@ -231,13 +231,13 @@ export function topReducer(state: any, action: any) {
         action.origin = "local";
         subtree.localCommands.push(action.payload.id);
         if(action.type == "UNDO"){
-          if(state.hasUndo) {
-            updateUndoRedoIndex(state, state.undoRedoIndex - 1);
+          if(subtree.hasUndo) {
+            updateUndoRedoIndex(subtree, subtree.undoRedoIndex - 1);
           }
         }
         else{
-          if(state.hasRedo) {
-            updateUndoRedoIndex(state, state.undoRedoIndex + 1);
+          if(subtree.hasRedo) {
+            updateUndoRedoIndex(subtree, subtree.undoRedoIndex + 1);
           }
         }
       }
