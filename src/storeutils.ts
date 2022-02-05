@@ -212,10 +212,13 @@ export function topReducer(state: any, action: any) {
           subtree.localCommands.push(action.payload.id);
           getOrAddCommand(subtree, action);
           let undoToBeDeleted = subtree.undoRedoIndex+1;
-          if(undoToBeDeleted < subtree.undoRedoCommandsList.length) {
-            subtree.undoRedoCommandsList = subtree.undoRedoCommandsList.splice(undoToBeDeleted, subtree.undoRedoCommandsList.length-undoToBeDeleted)
+          let undoRedoCommandsList = subtree.undoRedoCommandsList
+          if(undoToBeDeleted < undoRedoCommandsList.length) {
+            undoRedoCommandsList.splice(undoToBeDeleted, undoRedoCommandsList.length-undoToBeDeleted)
           }
-          subtree.undoRedoCommandsList.push(action.payload.id)
+          undoRedoCommandsList.push(action.payload.id)
+          subtree.undoRedoCommandsList = undoRedoCommandsList;
+
           updateUndoRedoIndex(subtree, subtree.undoRedoCommandsList.length-1);
         }
         action.origin = "local"
