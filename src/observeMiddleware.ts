@@ -17,6 +17,7 @@ export const createObserveMiddleware = (observers: Map<number, Observer>) => {
       const patches = action.type === "REBASE"? [action.payload] : action.payload?.patches
       observers.forEach((observer, key) => {
 
+        console.log(action)
         let foundAction = patches.find((patch:any)=>{
           const payloadPath = patch.path;
 
