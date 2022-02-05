@@ -204,9 +204,12 @@ by passing name in plugin configuration to createPlugin.
       console.warn(`Tried to access non-existent subtree ${subtree}`);
       return undefined;
     }
+    let command = null;
     if(subtreeState.hasUndo){
+      command = subtreeState.undoRedoCommandsList[subtreeState.undoRedoIndex];
       this.dispatch({type: "UNDO", payload:{subtree: subtree, commandId:subtreeState.undoRedoCommandsList[subtreeState.undoRedoIndex]}})
     }
+    return command;
   };
 
   redo(subtree:string){
@@ -215,9 +218,12 @@ by passing name in plugin configuration to createPlugin.
       console.warn(`Tried to access non-existent subtree ${subtree}`);
       return undefined;
     }
+    let command = null;
     if(subtreeState.hasRedo){
-      this.dispatch({type: "REDO", payload:{subtree: subtree, commandId:subtreeState.undoRedoCommandsList[subtreeState.undoRedoIndex+1]}})
+      command = subtreeState.undoRedoCommandsList[subtreeState.undoRedoIndex+1];
+      this.dispatch({type: "REDO", payload:{subtree: subtree, commandId:command}})
     }
+    return command
   };
 
   getLocalCommands = (subtree: string) => {
