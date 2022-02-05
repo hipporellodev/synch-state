@@ -221,7 +221,6 @@ export function topReducer(state: any, action: any) {
           return patch.path.startsWith("/app")
         })
         if(isApp) {
-          console.log("PATCHEDUNDO", action)
           subtree.localCommands.push(action.payload.id);
           getOrAddCommand(subtree, action);
           let undoToBeDeleted = subtree.undoRedoIndex+1;
