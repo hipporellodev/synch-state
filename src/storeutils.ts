@@ -98,6 +98,7 @@ function getOrAddCommand(subtree:any, command:any){
       payload:{...command.payload},
       type:command.type,
       sid:command.sid,
+      origin:command.origin,
       uid:command.uid,
       skipped:false
     }
@@ -190,7 +191,7 @@ export function topReducer(state: any, action: any) {
       //already applied
       if(alreadyApplied(subtree, action)) return;
 
-      if(action.sid != subtree.sid){
+      if(action.origin == "remote"){
         let newRemoteState = localApplyPatches(subtree.remoteState, patches);
         subtree.confirmedCommands.push(action.payload.id);
         let existingCommand = getOrAddCommand(subtree, action)
@@ -246,7 +247,7 @@ export function topReducer(state: any, action: any) {
       }
       let subtree = state[action.payload.subtree];
       if(alreadyApplied(subtree, action)) return;
-      if(action.sid == subtree.sid){
+      if(action.origin != "remote"){
         action.payload.snapshotId = subtree.initialSnapshotId;
         if(subtree.uid) {
           action.uid = subtree.uid
@@ -305,6 +306,7 @@ export function topReducer(state: any, action: any) {
         action.type = "PATCHES";
         action.sid = origAction.sid;
         action.uid = origAction.uid;
+        action.origin = origAction.origin;
         action.origAction = origAction;
       }
       return state;

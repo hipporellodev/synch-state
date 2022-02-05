@@ -159,7 +159,7 @@ by passing name in plugin configuration to createPlugin.
         }
         this.reduxStore.dispatch(action)
       } else {
-        if (subtree == null || !subtree.inited  || (action.sid != subtree.sid && action.type != "INIT_SESSION")) {
+        if (subtree == null || !subtree.inited || action.origin == "remote") {
           if (this.rebaseInProgressObserver) {
             this.waitingActions.push(action);
           } else {
