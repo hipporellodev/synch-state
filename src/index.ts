@@ -3,8 +3,8 @@ import DocStore from './DocStore';
 import jsonPatchPathToImmerPath from './utils/jsonPatchPathToImmerPath';
 import {topReducer} from "./storeutils";
 
-export function createDocStore(initialDoc: {}, plugins?: Array<any>) {
-  const docStore = new DocStore(initialDoc, topReducer, plugins);
+export function createDocStore(initialDoc: {}, sessionId, plugins?: Array<any>) {
+  const docStore = new DocStore(initialDoc, sessionId, topReducer, plugins);
 
   return docStore;
 }

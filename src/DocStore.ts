@@ -41,12 +41,13 @@ export default class DocStore {
   waitingActions:Array<any> = [];
 
   constructor(
-    initialDoc: {},
+    initialDoc: {}, sessionId,
     topReducer: any,
     pluginCreators: Array<any> = []
   ) {
     const initialState = {
       doc: {
+        sid:sessionId,
         state: initialDoc,
         patches: [],
         localCommands:[],
