@@ -8,6 +8,7 @@ import {
   applyMiddleware,
   compose,
 } from 'redux';
+import debounce from 'lodash/debounce'
 import { createInterceptMiddleware, Interceptor } from './interceptMiddleware';
 import { createObserveMiddleware, Observer } from './observeMiddleware';
 import get from 'lodash/get';
@@ -30,6 +31,9 @@ type ReduxStore = Store<
 
 export default class DocStore {
   reduxStore: ReduxStore;
+
+  debounceProcessId:any = null;
+  latestPatches:any = null;
   rebaseInProgressObserver:any =  null;
   rebaseCommandId:any = null;
   subscribe: (listener: () => void) => Unsubscribe;
@@ -135,9 +139,35 @@ by passing name in plugin configuration to createPlugin.
     }
   }
 
-
+  debounceProcess = (data, callback) => {
+    if(data.origin != "remote" && data.payload.patches != null && data.payload.patches.length === 1 && data.payload.patches[0].path && data.payload.patches[0].path.startsWith("/app") && (data.payload.patches[0].op === "add" || data.payload.patches[0].op === "replace")){
+      if((this.latestPatches != null && this.latestPatches.payload.patches[0].path !==  data.payload.patches[0].path)){
+        callback(this.latestPatches);
+      }
+      this.latestPatches = data;
+      this.debounceProcessId?.cancel();
+      this.debounceProcessId = debounce(()=>{
+        callback(this.latestPatches);
+        this.latestPatches = null;
+      }, 2000);
+      this.debounceProcessId();
+    }
+    else{
+      this.debounceProcessId?.cancel();
+      if(this.latestPatches != null){
+        callback(this.latestPatches);
+      }
+      this.latestPatches = null;
+      callback(data);
+    }
+  }
 
   dispatch(action:any){
+    this.debounceProcess(action, (data)=>{
+      this._dispatch(data);
+    })
+  }
+  _dispatch(action:any){
     if(action.payload) {
       let subtree = this.reduxStore.getState()[action.payload.subtree];
       if(action.origin != "remote" && action.sid == null){
