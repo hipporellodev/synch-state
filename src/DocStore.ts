@@ -50,6 +50,10 @@ export default class DocStore {
         state: initialDoc,
         patches: [],
         localCommands:[],
+        undoRedoIndex:-1,
+        hasRedo:false,
+        hasUndo:false,
+        undoRedoCommandsList: [],
         confirmedCommands: [],
         commands:{},
         remoteState:initialDoc
