@@ -229,8 +229,10 @@ export function topReducer(state: any, action: any) {
           updateUndoRedoIndex(subtree, subtree.undoRedoCommandsList.length-1);
         }
         action.origin = "local"
-        action.uid = subtree.uid
-        action.sid = subtree.sid
+        if(subtree.uid) {
+          action.uid = subtree.uid
+          action.sid = subtree.sid
+        }
 
       }
       return state;
@@ -245,8 +247,10 @@ export function topReducer(state: any, action: any) {
       if(action.origin != "remote"){
         action.payload.snapshotId = subtree.initialSnapshotId;
         action.origin = "local";
-        action.uid = subtree.uid
-        action.sid = subtree.sid
+        if(subtree.uid) {
+          action.uid = subtree.uid
+          action.sid = subtree.sid
+        }
         subtree.localCommands.push(action.payload.id);
         if(action.type == "UNDO"){
           if(subtree.hasUndo) {
@@ -302,27 +306,23 @@ export function topReducer(state: any, action: any) {
       }
       return state;
     }
+    case 'INIT_SESSION':{
+      let subtree = state[action.payload.subtree];
+      subtree.uid = action.payload.uid;
+      subtree.sid = action.payload.sid;
+      return state;
+    }
     case 'CREATE_SUBTREE': {
-      let existingState = state[action.payload.subtree];
-      let newState = null;
-      if(existingState && existingState.state){
-        newState = {...existingState.state, ...action.payload.initialState}
-      }
-      else{
-        newState = {...action.payload.initialState}
-      }
       state[action.payload.subtree] = {
-        state: newState,
+        state: action.payload.initialState,
         localCommands: [],
         undoRedoIndex:-1,
-        uid:action.payload.uid,
-        sid:action.payload.sid,
         hasRedo:false,
         hasUndo:false,
         undoRedoCommandsList: [],
         confirmedCommands: [],
         commands:{},
-        remoteState:newState
+        remoteState:action.payload.initialState
       };
       return state;
     }
