@@ -140,6 +140,10 @@ by passing name in plugin configuration to createPlugin.
   dispatch(action:any){
     if(action.payload) {
       let subtree = this.getState(action.payload.subtree);
+      if(action.sid == null){
+        action.sid = subtree.sid;
+        action.uid = subtree.uid;
+      }
       if (action.type == "REBASE") {
         let commands = action.payload.commands;
         if (this.rebaseCommandId && commands) {
@@ -155,7 +159,7 @@ by passing name in plugin configuration to createPlugin.
         }
         this.reduxStore.dispatch(action)
       } else {
-        if (subtree == null || !subtree.inited || action.sid != subtree.sid) {
+        if (subtree == null || !subtree.inited  || (action.sid != subtree.sid && action.type != "INIT_SESSION")) {
           if (this.rebaseInProgressObserver) {
             this.waitingActions.push(action);
           } else {
