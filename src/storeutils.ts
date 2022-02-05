@@ -152,7 +152,7 @@ export function topReducer(state: any, action: any) {
       subtree.confirmedCommands = newCommandIds;
       subtree.confirmedCommands.forEach((confirmedCommandId:any)=>{
         let command = subtree.commands[confirmedCommandId];
-        if(command) {
+        if(command && !command.skipped) {
           let patches = createPatches(command.payload.patches);
           subtree.remoteState = localApplyPatches(subtree.remoteState, patches)
         }
