@@ -217,7 +217,10 @@ export function topReducer(state: any, action: any) {
           return state;
         }
         subtree.state = newState;
-        if(!patches[0].path.startsWith("/local")) {
+        let isApp = patches.find((patch:any)=>{
+          return patch.path.startsWith("/app")
+        })
+        if(isApp) {
           subtree.localCommands.push(action.payload.id);
           getOrAddCommand(subtree, action);
           let undoToBeDeleted = subtree.undoRedoIndex+1;
