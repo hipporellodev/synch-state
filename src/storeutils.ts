@@ -229,6 +229,9 @@ export function topReducer(state: any, action: any) {
           updateUndoRedoIndex(subtree, subtree.undoRedoCommandsList.length-1);
         }
         action.origin = "local"
+        action.uid = subtree.uid
+        action.sid = subtree.sid
+
       }
       return state;
     }
@@ -242,6 +245,8 @@ export function topReducer(state: any, action: any) {
       if(action.origin != "remote"){
         action.payload.snapshotId = subtree.initialSnapshotId;
         action.origin = "local";
+        action.uid = subtree.uid
+        action.sid = subtree.sid
         subtree.localCommands.push(action.payload.id);
         if(action.type == "UNDO"){
           if(subtree.hasUndo) {
@@ -302,6 +307,8 @@ export function topReducer(state: any, action: any) {
         state: action.payload.initialState,
         localCommands: [],
         undoRedoIndex:-1,
+        userId:action.payload.initialState.userId,
+        sessionId:action.payload.initialState.sessionId,
         hasRedo:false,
         hasUndo:false,
         undoRedoCommandsList: [],
