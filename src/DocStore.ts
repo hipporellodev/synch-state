@@ -155,7 +155,7 @@ by passing name in plugin configuration to createPlugin.
         }
         this.reduxStore.dispatch(action)
       } else {
-        if (subtree == null || !subtree.inited || action.sid != action.sid) {
+        if (subtree == null || !subtree.inited || action.sid != subtree.sid) {
           if (this.rebaseInProgressObserver) {
             this.waitingActions.push(action);
           } else {
