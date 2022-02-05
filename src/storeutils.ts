@@ -213,7 +213,7 @@ export function topReducer(state: any, action: any) {
             subtree.undoRedoCommandsList = subtree.undoRedoCommandsList.splice(undoToBeDeleted, subtree.undoRedoCommandsList.length-undoToBeDeleted)
           }
           subtree.undoRedoCommandsList.push(action.payload.id)
-          updateUndoRedoIndex(state, subtree.undoRedoCommandsList.length-1);
+          updateUndoRedoIndex(subtree, subtree.undoRedoCommandsList.length-1);
         }
         action.origin = "local"
       }
