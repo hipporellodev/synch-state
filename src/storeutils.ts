@@ -97,7 +97,8 @@ function getOrAddCommand(subtree:any, command:any){
     existingCommand = {
       payload:{...command.payload},
       type:command.type,
-      origin:command.origin,
+      sid:command.sid,
+      uid:command.uid,
       skipped:false
     }
     subtree.commands[command.payload.id] = existingCommand;
@@ -228,7 +229,6 @@ export function topReducer(state: any, action: any) {
 
           updateUndoRedoIndex(subtree, subtree.undoRedoCommandsList.length-1);
         }
-        action.origin = "local"
         if(subtree.uid) {
           action.uid = subtree.uid
           action.sid = subtree.sid
@@ -246,7 +246,6 @@ export function topReducer(state: any, action: any) {
       if(alreadyApplied(subtree, action)) return;
       if(action.sid == subtree.sid){
         action.payload.snapshotId = subtree.initialSnapshotId;
-        action.origin = "local";
         if(subtree.uid) {
           action.uid = subtree.uid
           action.sid = subtree.sid
