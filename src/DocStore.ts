@@ -198,11 +198,28 @@ by passing name in plugin configuration to createPlugin.
     return subtreeState.state;
   };
 
+  hasUndo(subtree:string){
+    const subtreeState = this.reduxStore.getState()[subtree];
+    if (!subtreeState) {
+      console.warn(`Tried to access non-existent subtree ${subtree}`);
+      return false;
+    }
+    return subtreeState.hasUndo
+  }
+
+  hasRedo(subtree:string){
+    const subtreeState = this.reduxStore.getState()[subtree];
+    if (!subtreeState) {
+      console.warn(`Tried to access non-existent subtree ${subtree}`);
+      return false;
+    }
+    return subtreeState.hasRedo
+  }
   undo(subtree:string){
     const subtreeState = this.reduxStore.getState()[subtree];
     if (!subtreeState) {
       console.warn(`Tried to access non-existent subtree ${subtree}`);
-      return undefined;
+      return null;
     }
     let command = null;
     if(subtreeState.hasUndo){
@@ -216,7 +233,7 @@ by passing name in plugin configuration to createPlugin.
     const subtreeState = this.reduxStore.getState()[subtree];
     if (!subtreeState) {
       console.warn(`Tried to access non-existent subtree ${subtree}`);
-      return undefined;
+      return null;
     }
     let command = null;
     if(subtreeState.hasRedo){
