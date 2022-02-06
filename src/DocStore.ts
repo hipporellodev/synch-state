@@ -95,6 +95,8 @@ by passing name in plugin configuration to createPlugin.
       process.env.NODE_ENV !== 'production' &&
       (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
         ? (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
+            trace: true,
+            traceLimit: 30
             // Specify extension’s options like name, actionsBlacklist, actionsCreators, serialize...
           })
         : compose;
