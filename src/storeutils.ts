@@ -3,12 +3,25 @@ import {applyPatch} from 'fast-json-patch';
 import rebaseNeeded from "./utils/rebaseNeeded";
 import isEqual from "lodash/isEqual"
 function createPatches(patches:any){
+  if(patches == null){
+    return [];
+  }
+  patches = patches.filter((patch:any)=>{
+    return patch != null
+  })
   return patches;
 }
 function isNumber(num:any){
   return !isNaN(parseFloat(num)) && isFinite(num);
 }
-
+function updateUndoRedoIndex(state:any, newIndex:number){
+  if(newIndex < 0){
+    newIndex = -1;
+  }
+  state.undoRedoIndex = newIndex;
+  state.hasUndo = state.undoRedoIndex >= 0;
+  state.hasRedo = state.undoRedoCommandsList.length -1 > state.undoRedoIndex;
+}
 export function localApplyPatches(state:any, patches:Array<any>){
   if(!patches?.length) return state;
   patches.forEach(patch=>{
@@ -84,7 +97,9 @@ function getOrAddCommand(subtree:any, command:any){
     existingCommand = {
       payload:{...command.payload},
       type:command.type,
+      sid:command.sid,
       origin:command.origin,
+      uid:command.uid,
       skipped:false
     }
     subtree.commands[command.payload.id] = existingCommand;
@@ -148,7 +163,7 @@ export function topReducer(state: any, action: any) {
       subtree.confirmedCommands = newCommandIds;
       subtree.confirmedCommands.forEach((confirmedCommandId:any)=>{
         let command = subtree.commands[confirmedCommandId];
-        if(command) {
+        if(command && !command.skipped) {
           let patches = createPatches(command.payload.patches);
           subtree.remoteState = localApplyPatches(subtree.remoteState, patches)
         }
@@ -168,17 +183,18 @@ export function topReducer(state: any, action: any) {
       if(action.payload.id == null){
         action.payload.id = uuidv4();
       }
-
+      let patches = createPatches(action.payload.patches);
+      action.payload.patches = patches;
       let subtree = state[action.payload.subtree];
       //already applied
       if(alreadyApplied(subtree, action)) return;
-      let patches = createPatches(action.payload.patches);
+
       if(action.origin == "remote"){
         let newRemoteState = localApplyPatches(subtree.remoteState, patches);
         subtree.confirmedCommands.push(action.payload.id);
         let existingCommand = getOrAddCommand(subtree, action)
         existingCommand.confirmed = true;
-        let notifyLocalState = existingCommand.origin != "local";
+        let notifyLocalState = existingCommand.sid != subtree.sid;
         subtree.commands[action.payload.id] = existingCommand
         markNotConfirmedLocalAsConfirmed(subtree);
         if (notifyLocalState) {
@@ -201,13 +217,27 @@ export function topReducer(state: any, action: any) {
           return state;
         }
         subtree.state = newState;
-        if(!patches[0].path.startsWith("/local")) {
+        let isApp = patches.find((patch:any)=>{
+          return patch.path.startsWith("/app")
+        })
+        if(isApp) {
           subtree.localCommands.push(action.payload.id);
           getOrAddCommand(subtree, action);
-          state.lastCommand = action;
-          state.firstSkippedCommand = null;
+          let undoToBeDeleted = subtree.undoRedoIndex+1;
+          let undoRedoCommandsList = subtree.undoRedoCommandsList
+          if(undoToBeDeleted < undoRedoCommandsList.length) {
+            undoRedoCommandsList.splice(undoToBeDeleted, undoRedoCommandsList.length-undoToBeDeleted)
+          }
+          undoRedoCommandsList.push(action.payload.id)
+          subtree.undoRedoCommandsList = undoRedoCommandsList;
+
+          updateUndoRedoIndex(subtree, subtree.undoRedoCommandsList.length-1);
         }
-        action.origin = "local"
+        if(action.origin != "remote" && subtree.uid) {
+          action.uid = subtree.uid
+          action.sid = subtree.sid
+        }
+
       }
       return state;
     }
@@ -220,8 +250,21 @@ export function topReducer(state: any, action: any) {
       if(alreadyApplied(subtree, action)) return;
       if(action.origin != "remote"){
         action.payload.snapshotId = subtree.initialSnapshotId;
-        action.origin = "local";
+        if(action.origin != "remote" && subtree.uid) {
+          action.uid = subtree.uid
+          action.sid = subtree.sid
+        }
         subtree.localCommands.push(action.payload.id);
+        if(action.type == "UNDO"){
+          if(subtree.hasUndo) {
+            updateUndoRedoIndex(subtree, subtree.undoRedoIndex - 1);
+          }
+        }
+        else{
+          if(subtree.hasRedo) {
+            updateUndoRedoIndex(subtree, subtree.undoRedoIndex + 1);
+          }
+        }
       }
       else{
         subtree.confirmedCommands.push(action.payload.id)
@@ -247,8 +290,6 @@ export function topReducer(state: any, action: any) {
 
         markNotConfirmedLocalAsConfirmed(subtree);
         let initialState = subtree.remoteState;
-        let lastPatchesCommand = null;
-        let firstSkippedCommand:any = null;
         subtree.localCommands.forEach((commandId:any)=>{
           let command = subtree.commands[commandId];
           if(!command.confirmed && command.type != "UNDO" && command.type != "REDO"){
@@ -258,28 +299,36 @@ export function topReducer(state: any, action: any) {
             if (!command.confirmed) {
               initialState = localApplyPatches(initialState, createPatches(command.payload.patches));
             }
-            lastPatchesCommand = command;
-            firstSkippedCommand = null;
-          } else if (command.skipped && command.type != "UNDO" && command.type != "REDO") {
-            if (firstSkippedCommand == null) {
-              firstSkippedCommand = command
-            }
           }
         })
         subtree.state = {...subtree.state, ...initialState};
         let origAction = JSON.parse(JSON.stringify(action));
         action.payload.patches = allPatches;
         action.type = "PATCHES";
+        action.sid = origAction.sid;
+        action.uid = origAction.uid;
+        action.origin = origAction.origin;
         action.origAction = origAction;
-        state.lastCommand = lastPatchesCommand;
-        state.firstSkippedCommand = firstSkippedCommand;
       }
       return state;
     }
+    case 'INIT_SESSION':{
+      let subtree = state[action.payload.subtree];
+      subtree.uid = action.payload.uid;
+      subtree.sid = action.payload.sid;
+      return state;
+    }
     case 'CREATE_SUBTREE': {
+      let subTree = state[action.payload.subtree];
       state[action.payload.subtree] = {
         state: action.payload.initialState,
         localCommands: [],
+        undoRedoIndex:-1,
+        sid:subTree.sid,
+        uid:subTree.uid,
+        hasRedo:false,
+        hasUndo:false,
+        undoRedoCommandsList: [],
         confirmedCommands: [],
         commands:{},
         remoteState:action.payload.initialState

@@ -8,6 +8,7 @@ import {
   applyMiddleware,
   compose,
 } from 'redux';
+import debounce from 'lodash/debounce'
 import { createInterceptMiddleware, Interceptor } from './interceptMiddleware';
 import { createObserveMiddleware, Observer } from './observeMiddleware';
 import get from 'lodash/get';
@@ -30,6 +31,9 @@ type ReduxStore = Store<
 
 export default class DocStore {
   reduxStore: ReduxStore;
+
+  debounceProcessId:any = null;
+  latestPatches:any = null;
   rebaseInProgressObserver:any =  null;
   rebaseCommandId:any = null;
   subscribe: (listener: () => void) => Unsubscribe;
@@ -41,15 +45,20 @@ export default class DocStore {
   waitingActions:Array<any> = [];
 
   constructor(
-    initialDoc: {},
+    initialDoc: {}, sessionId:string,
     topReducer: any,
     pluginCreators: Array<any> = []
   ) {
     const initialState = {
       doc: {
+        sid:sessionId,
         state: initialDoc,
         patches: [],
         localCommands:[],
+        undoRedoIndex:-1,
+        hasRedo:false,
+        hasUndo:false,
+        undoRedoCommandsList: [],
         confirmedCommands: [],
         commands:{},
         remoteState:initialDoc
@@ -132,11 +141,36 @@ by passing name in plugin configuration to createPlugin.
     }
   }
 
-
+  debounceProcess = (data:any) => {
+    if(data.origin != "remote" && data.payload && data.payload.patches != null && data.payload.patches.length === 1 && data.payload.patches[0].path && data.payload.patches[0].path.startsWith("/app") && (data.payload.patches[0].op === "replace")){
+      if((this.latestPatches != null && this.latestPatches.payload.patches[0].path !==  data.payload.patches[0].path)){
+        this._dispatch(this.latestPatches);
+      }
+      this.latestPatches = data;
+      this.debounceProcessId?.cancel();
+      this.debounceProcessId = debounce(()=>{
+        this._dispatch(this.latestPatches);
+        this.latestPatches = null;
+      }, 2000);
+      this.debounceProcessId();
+    }
+    else{
+      this.triggerDebounce();
+      this._dispatch(data);
+    }
+  }
 
   dispatch(action:any){
+    this.debounceProcess(action)
+  }
+  _dispatch(action:any){
     if(action.payload) {
-      let subtree = this.getState(action.payload.subtree);
+      let subtree = this.reduxStore.getState()[action.payload.subtree];
+      if(action.origin != "remote" && action.sid == null){
+        action.sid = subtree.sid;
+        action.uid = subtree.uid;
+        action.dt = Date.now();
+      }
       if (action.type == "REBASE") {
         let commands = action.payload.commands;
         if (this.rebaseCommandId && commands) {
@@ -198,6 +232,53 @@ by passing name in plugin configuration to createPlugin.
       return undefined;
     }
     return subtreeState.state;
+  };
+
+  hasUndo(subtree:string){
+    const subtreeState = this.reduxStore.getState()[subtree];
+    if (!subtreeState) {
+      console.warn(`Tried to access non-existent subtree ${subtree}`);
+      return false;
+    }
+    return subtreeState.hasUndo
+  }
+
+  hasRedo(subtree:string){
+    const subtreeState = this.reduxStore.getState()[subtree];
+    if (!subtreeState) {
+      console.warn(`Tried to access non-existent subtree ${subtree}`);
+      return false;
+    }
+    return subtreeState.hasRedo
+  }
+  undo(subtree:string){
+    const subtreeState = this.reduxStore.getState()[subtree];
+    if (!subtreeState) {
+      console.warn(`Tried to access non-existent subtree ${subtree}`);
+      return null;
+    }
+    this.triggerDebounce();
+    let command = null;
+    if(subtreeState.hasUndo){
+      command = subtreeState.undoRedoCommandsList[subtreeState.undoRedoIndex];
+      this.dispatch({type: "UNDO", payload:{subtree: subtree, commandId:subtreeState.undoRedoCommandsList[subtreeState.undoRedoIndex]}})
+    }
+    return command;
+  };
+
+  redo(subtree:string){
+    const subtreeState = this.reduxStore.getState()[subtree];
+    if (!subtreeState) {
+      console.warn(`Tried to access non-existent subtree ${subtree}`);
+      return null;
+    }
+    this.triggerDebounce();
+    let command = null;
+    if(subtreeState.hasRedo){
+      command = subtreeState.undoRedoCommandsList[subtreeState.undoRedoIndex+1];
+      this.dispatch({type: "REDO", payload:{subtree: subtree, commandId:command}})
+    }
+    return command
   };
 
   getLocalCommands = (subtree: string) => {
@@ -376,4 +457,12 @@ by passing name in plugin configuration to createPlugin.
       }
     };
   };
+
+  private triggerDebounce() {
+    this.debounceProcessId?.cancel();
+    if(this.latestPatches != null){
+      this._dispatch(this.latestPatches);
+    }
+    this.latestPatches = null;
+  }
 }
