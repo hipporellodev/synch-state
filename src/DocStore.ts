@@ -142,22 +142,22 @@ by passing name in plugin configuration to createPlugin.
   }
 
   debounceProcess = (data:any) => {
-    if(data.origin != "remote" && data.payload && data.payload.patches != null && data.payload.patches.length === 1 && data.payload.patches[0].path && data.payload.patches[0].path.startsWith("/app") && (data.payload.patches[0].op === "replace")){
-      if((this.latestPatches != null && this.latestPatches.payload.patches[0].path !==  data.payload.patches[0].path)){
-        this._dispatch(this.latestPatches);
-      }
-      this.latestPatches = data;
-      this.debounceProcessId?.cancel();
-      this.debounceProcessId = debounce(()=>{
-        this._dispatch(this.latestPatches);
-        this.latestPatches = null;
-      }, 2000);
-      this.debounceProcessId();
-    }
-    else{
-      this.triggerDebounce();
-      this._dispatch(data);
-    }
+    // if(data.origin != "remote" && data.payload && data.payload.patches != null && data.payload.patches.length === 1 && data.payload.patches[0].path && data.payload.patches[0].path.startsWith("/app") && (data.payload.patches[0].op === "replace")){
+    //   if((this.latestPatches != null && this.latestPatches.payload.patches[0].path !==  data.payload.patches[0].path)){
+    //     this._dispatch(this.latestPatches);
+    //   }
+    //   this.latestPatches = data;
+    //   this.debounceProcessId?.cancel();
+    //   this.debounceProcessId = debounce(()=>{
+    //     this._dispatch(this.latestPatches);
+    //     this.latestPatches = null;
+    //   }, 2000);
+    //   this.debounceProcessId();
+    // }
+    // else{
+    //   this.triggerDebounce();
+    this._dispatch(data);
+    // }
   }
 
   dispatch(action:any){
