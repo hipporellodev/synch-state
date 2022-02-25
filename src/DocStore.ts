@@ -243,6 +243,16 @@ by passing name in plugin configuration to createPlugin.
     return subtreeState.hasUndo
   }
 
+  getLatestCommand(subtree){
+    const subtreeState = this.reduxStore.getState()[subtree];
+    if (!subtreeState) {
+      console.warn(`Tried to access non-existent subtree ${subtree}`);
+      return null;
+    }
+    return subtreeState.undoRedoCommandsList.length>0?subtreeState.undoRedoCommandsList[subtreeState.undoRedoCommandsList.length-1]:null
+
+  }
+
   hasRedo(subtree:string){
     const subtreeState = this.reduxStore.getState()[subtree];
     if (!subtreeState) {
