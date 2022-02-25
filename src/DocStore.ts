@@ -249,7 +249,11 @@ by passing name in plugin configuration to createPlugin.
       console.warn(`Tried to access non-existent subtree ${subtree}`);
       return null;
     }
-    return subtreeState.undoRedoCommandsList.length>0?subtreeState.undoRedoCommandsList[subtreeState.undoRedoCommandsList.length-1]:null
+    let commandId = subtreeState.undoRedoCommandsList.length>0?subtreeState.undoRedoCommandsList[subtreeState.undoRedoCommandsList.length-1]:null
+    if(commandId) {
+      return subtreeState.commands[commandId]
+    }
+    return null;
 
   }
 
