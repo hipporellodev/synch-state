@@ -243,7 +243,7 @@ by passing name in plugin configuration to createPlugin.
     return subtreeState.hasUndo
   }
 
-  getLatestCommand(subtree){
+  getLatestCommand(subtree:string){
     const subtreeState = this.reduxStore.getState()[subtree];
     if (!subtreeState) {
       console.warn(`Tried to access non-existent subtree ${subtree}`);
