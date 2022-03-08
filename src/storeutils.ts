@@ -9,7 +9,7 @@ function createPatches(patches:any){
   patches = patches.filter((patch:any)=>{
     return patch != null && patch.path
   })
-  patches = patches.map(patch=>{
+  patches = patches.map((patch:any)=>{
     if(patch.op == "replace" && patch.value == null){
       return {op:"remove", path:patch.path}
     }
