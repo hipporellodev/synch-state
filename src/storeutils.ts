@@ -7,7 +7,13 @@ function createPatches(patches:any){
     return [];
   }
   patches = patches.filter((patch:any)=>{
-    return patch != null
+    return patch != null && patch.path
+  })
+  patches = patches.map(patch=>{
+    if(patch.op == "replace" && patch.value == null){
+      return {op:"remove", path:patch.path}
+    }
+    return patch;
   })
   return patches;
 }
