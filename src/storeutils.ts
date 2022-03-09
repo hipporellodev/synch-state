@@ -7,7 +7,7 @@ function validatePath(patches:any){
   patches.forEach((patch:any)=>{
     let path = patch.path;
     let parts = path.split("/")
-    let found = parts.find(prt=>{
+    let found = parts.find((prt:any)=>{
       return number_reg_exp.test(prt)
     })
     if(found){
