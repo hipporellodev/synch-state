@@ -10,7 +10,10 @@ function createPatches(patches:any){
     return patch != null && patch.path
   })
   patches = patches.map((patch:any)=>{
-    if(patch.op == "replace" && patch.value == null){
+    if(patch.op == "replace" && (patch.value == null
+      || (typeof (patch.value) == "object" && Object.keys(patch.value).length === 0))
+      || (Array.isArray(patch.value) && patch.value?.length === 0)
+    ){
       return {op:"remove", path:patch.path}
     }
     return patch;
