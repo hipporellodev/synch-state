@@ -2,6 +2,20 @@ import { v4 as uuidv4 } from "uuid";
 import {applyPatch} from 'fast-json-patch';
 import rebaseNeeded from "./utils/rebaseNeeded";
 import isEqual from "lodash/isEqual"
+const  number_reg_exp = /^\d+$/;
+function validatePath(patches:any){
+  patches.forEach((patch:any)=>{
+    let path = patch.path;
+    let parts = path.split("/")
+    let found = parts.find(prt=>{
+      return number_reg_exp.test(prt)
+    })
+    if(found){
+      throw new Error("Invalid path "+path+ " patches:"+JSON.stringify(patches))
+    }
+  })
+
+}
 function createPatches(patches:any){
   if(patches == null){
     return [];
@@ -18,6 +32,7 @@ function createPatches(patches:any){
     }
     return patch;
   })
+  validatePath(patches)
   return patches;
 }
 function isNumber(num:any){
