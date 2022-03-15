@@ -3,7 +3,7 @@ import { SyncStatePath } from '../index';
 import jsonPatchPathToImmerPath from '../utils/jsonPatchPathToImmerPath';
 import immerPathToJsonPatchPath from '../utils/immerPathToJsonPatchPath';
 import {compare} from "fast-json-patch";
-import {isNumber} from "storeutils";
+import {isNumber} from "./storeutils";
 import get from 'lodash/get';
 
 export default function useSyncState(
