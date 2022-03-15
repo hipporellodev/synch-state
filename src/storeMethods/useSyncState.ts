@@ -3,9 +3,10 @@ import { SyncStatePath } from '../index';
 import jsonPatchPathToImmerPath from '../utils/jsonPatchPathToImmerPath';
 import immerPathToJsonPatchPath from '../utils/immerPathToJsonPatchPath';
 import {compare} from "fast-json-patch";
-import {isNumber} from "./storeutils";
 import get from 'lodash/get';
-
+function isNumber(num:any){
+  return !isNaN(parseFloat(num)) && isFinite(num);
+}
 export default function useSyncState(
     store: DocStore,
     subtree: string,
