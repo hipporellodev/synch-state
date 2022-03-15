@@ -40,6 +40,7 @@ export default function useSyncState(
       let minPaths = {};
 
       patches.forEach((p) => {
+        console.log(p.path)
         let parts = p.path.split("/")
         let minPath = [];
         for(let i=0; i < parts.length; i++){
@@ -51,6 +52,7 @@ export default function useSyncState(
         minPaths[minPath.join("/")] = true;
       })
 
+      console.log(minPaths)
       patches = Object.keys(minPaths).map(minPath=>{
         let pathVal = get(value, jsonPatchPathToImmerPath(minPath));
         return {op:"replace", path:newPath+minPath, value:pathVal}
