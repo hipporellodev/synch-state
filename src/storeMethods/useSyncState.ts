@@ -56,7 +56,7 @@ export default function useSyncState(
 
       let oldPatches = patches;
       patches = Object.keys(minPaths).map(minPath=>{
-        let pathVal = get(value, jsonPatchPathToImmerPath(minPath));
+        let pathVal = get(cmd, jsonPatchPathToImmerPath(minPath));
         return {op:"replace", path:newPath+minPath, value:pathVal}
       })
 
