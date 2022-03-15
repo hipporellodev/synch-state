@@ -4,8 +4,20 @@ import jsonPatchPathToImmerPath from '../utils/jsonPatchPathToImmerPath';
 import immerPathToJsonPatchPath from '../utils/immerPathToJsonPatchPath';
 import {compare} from "fast-json-patch";
 import get from 'lodash/get';
+import set from 'lodash/set';
 function isNumber(num:any){
   return !isNaN(parseFloat(num)) && isFinite(num);
+}
+function findNonNumericPath(path){
+  let parts = path.split("/")
+  let minPath = [];
+  for(let i=0; i < parts.length; i++){
+    if(parts[i] !== "" && isNumber(parts[i])){
+      break;
+    }
+    minPath.push(parts[i]);
+  }
+  return minPath.join("/")
 }
 export default function useSyncState(
     store: DocStore,
@@ -26,31 +38,28 @@ export default function useSyncState(
       }
 
 
+
       // replace the received value in its parent
       // let parentPath = [...path];
       const immerPath = jsonPatchPathToImmerPath(newPath);
       const childKey = immerPath.pop();
       newPath = immerPathToJsonPatchPath(immerPath); // immerPath.join('/');
-      let stateAtPath = JSON.parse(JSON.stringify(store.getStateAtPath(subtree, newPath)));
-      let cmd = JSON.parse(JSON.stringify(store.getStateAtPath(subtree, newPath)));
+      let potentialNewPath = findNonNumericPath(newPath);
+      let stateAtPath = JSON.parse(JSON.stringify(store.getStateAtPath(subtree, potentialNewPath)));
+      let cmd = JSON.parse(JSON.stringify(store.getStateAtPath(subtree, potentialNewPath)));
       // @ts-ignore
-      cmd[childKey] = value;
+      let targetPath = "/"+childKey;
+      if(potentialNewPath !== newPath){
+        targetPath = newPath.substring(potentialNewPath.length)+targetPath
+      }
+      set(cmd, jsonPatchPathToImmerPath(targetPath), value)
       // @ts-ignore
       let patches = compare(stateAtPath, cmd);
 
       let minPaths:any = {};
 
       patches.forEach((p) => {
-        console.log(p.path)
-        let parts = p.path.split("/")
-        let minPath = [];
-        for(let i=0; i < parts.length; i++){
-          if(parts[i] !== "" && isNumber(parts[i])){
-            break;
-          }
-          minPath.push(parts[i]);
-        }
-        minPaths[minPath.join("/")] = true;
+        minPaths[findNonNumericPath(p.path)] = true;
       })
 
 
