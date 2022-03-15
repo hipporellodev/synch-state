@@ -3,6 +3,8 @@ import { SyncStatePath } from '../index';
 import jsonPatchPathToImmerPath from '../utils/jsonPatchPathToImmerPath';
 import immerPathToJsonPatchPath from '../utils/immerPathToJsonPatchPath';
 import {compare} from "fast-json-patch";
+import {isNumber} from "storeutils";
+import get from 'lodash/get';
 
 export default function useSyncState(
     store: DocStore,
@@ -35,12 +37,24 @@ export default function useSyncState(
       // @ts-ignore
       let patches = compare(stateAtPath, cmd);
 
-      patches = patches.map((p) => {
-        return {
-          ...p,
-          path: newPath + p.path,
-        };
-      });
+      let minPaths = {};
+
+      patches.forEach((p) => {
+        let parts = p.path.split("/")
+        let minPath = [];
+        for(let i=0; i < parts.length; i++){
+          if(parts[i] !== "" && isNumber(parts[i])){
+            break;
+          }
+          minPath.push(parts[i]);
+        }
+        minPaths[minPath.join("/")] = true;
+      })
+
+      patches = Object.keys(minPaths).map(minPath=>{
+        let pathVal = get(value, jsonPatchPathToImmerPath(minPath));
+        return {op:"replace", path:newPath+minPath, value:pathVal}
+      })
 
       store.dispatch({
         type: 'PATCHES',

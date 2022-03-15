@@ -35,7 +35,7 @@ function createPatches(patches:any){
   validatePath(patches)
   return patches;
 }
-function isNumber(num:any){
+export function isNumber(num:any){
   return !isNaN(parseFloat(num)) && isFinite(num);
 }
 function updateUndoRedoIndex(state:any, newIndex:number){
