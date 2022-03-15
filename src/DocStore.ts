@@ -312,13 +312,13 @@ by passing name in plugin configuration to createPlugin.
     }
 
     const state = subtreeState.state;
-    if (!path || path === "") {
-      return state;
+    let newState = state;
+    if (path && path !== "")
+    {
+      newState = get(state, jsonPatchPathToImmerPath(path))
     }
-    return get(state, jsonPatchPathToImmerPath(path));
-    // let newState = get(state, jsonPatchPathToImmerPath(path))
-    // if(!newState) return newState;
-    // return JSON.parse(JSON.stringify(newState));
+    if(!newState) return newState;
+    return JSON.parse(JSON.stringify(newState));
   };
   getPatches = (subtree: string) => {
     const subtreeState = this.reduxStore.getState()[subtree];
