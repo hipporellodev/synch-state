@@ -233,7 +233,7 @@ export function topReducer(state: any, action: any) {
         subtree.remoteState = newRemoteState;
       }
       else {
-        let prevState = subtree.state;
+        let prevState = subtree.state?JSON.parse(JSON.stringify(subtree.state)):null;
         let newState = localApplyPatches(subtree.state, patches)
 
         if(isEqual(prevState, newState)){
