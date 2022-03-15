@@ -53,12 +53,14 @@ export default function useSyncState(
         minPaths[minPath.join("/")] = true;
       })
 
-      console.log(minPaths)
-      patches = Object.keys(minPaths).map(minPath=>{
+
+      let newPatches = Object.keys(minPaths).map(minPath=>{
         let pathVal = get(value, jsonPatchPathToImmerPath(minPath));
         return {op:"replace", path:newPath+minPath, value:pathVal}
       })
 
+      console.log(minPaths, patches, newPatches)
+      patches = newPatches
       store.dispatch({
         type: 'PATCHES',
         payload: { patches, subtree },
