@@ -60,7 +60,7 @@ export default function useSyncState(
         return {op:"replace", path:newPath+minPath, value:pathVal}
       })
 
-      console.log(minPaths, oldPatches, patches)
+      console.log(minPaths, oldPatches, patches, value)
       store.dispatch({
         type: 'PATCHES',
         payload: { patches, subtree },
