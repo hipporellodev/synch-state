@@ -8,7 +8,7 @@ import set from 'lodash/set';
 function isNumber(num:any){
   return !isNaN(parseFloat(num)) && isFinite(num);
 }
-function findNonNumericPath(path){
+function findNonNumericPath(path:string){
   let parts = path.split("/")
   let minPath = [];
   for(let i=0; i < parts.length; i++){
