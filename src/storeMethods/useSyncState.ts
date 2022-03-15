@@ -37,7 +37,7 @@ export default function useSyncState(
       // @ts-ignore
       let patches = compare(stateAtPath, cmd);
 
-      let minPaths = {};
+      let minPaths:any = {};
 
       patches.forEach((p) => {
         console.log(p.path)
