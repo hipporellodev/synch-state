@@ -62,14 +62,11 @@ export default function useSyncState(
         minPaths[findNonNumericPath(p.path)] = true;
       })
 
-
-      let oldPatches = patches;
       patches = Object.keys(minPaths).map(minPath=>{
         let pathVal = minPath === ""?JSON.parse(JSON.stringify(cmd)):get(cmd, jsonPatchPathToImmerPath(minPath));
         return {op:"replace", path:potentialNewPath+minPath, value:pathVal}
       })
 
-      console.log(minPaths, oldPatches, patches, cmd)
       store.dispatch({
         type: 'PATCHES',
         payload: { patches, subtree },
