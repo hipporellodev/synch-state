@@ -46,7 +46,7 @@ export default function useSyncState(
       newPath = immerPathToJsonPatchPath(immerPath); // immerPath.join('/');
       let potentialNewPath = findNonNumericPath(newPath);
       let stateAtPath = potentialNewPath === ""?store.getState(subtree):store.getStateAtPath(subtree, potentialNewPath);
-      let cmd = JSON.parse(JSON.stringify(stateAtPath));
+      let cmd = stateAtPath==null?{}:JSON.parse(JSON.stringify(stateAtPath));
       // @ts-ignore
       let targetPath = "/"+childKey;
       if(potentialNewPath !== newPath){
