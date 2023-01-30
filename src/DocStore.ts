@@ -10,7 +10,7 @@ import {
 } from 'redux';
 import debounce from 'lodash/debounce'
 import { createInterceptMiddleware, Interceptor } from './interceptMiddleware';
-import { createObserveMiddleware, Observer } from './observeMiddleware';
+import { createObserveMiddleware } from './observeMiddleware';
 import get from 'lodash/get';
 import useSyncState from './storeMethods/useSyncState';
 import { SyncStatePath } from './index';
@@ -38,7 +38,7 @@ export default class DocStore {
   rebaseCommandId:any = null;
   subscribe: (listener: () => void) => Unsubscribe;
   plugins: Array<any>;
-  private observers = new Map<number, Observer>();
+  private observers = new Map<number, any>();
   private interceptors = new Map<number, Interceptor>();
   private postObserveCallbacks: Array<() => void> = [];
   private postInterceptCallbacks: Array<() => void> = [];

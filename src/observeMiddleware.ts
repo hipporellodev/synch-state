@@ -3,14 +3,14 @@ import immerPathToJsonPatchPath from './utils/immerPathToJsonPatchPath';
 import jsonPatchPathToImmerPath from './utils/jsonPatchPathToImmerPath';
 
 export type Observer = {
-  lastUpdatedData: any;
   subtree: string;
   path: string;
   callback: (value: any, change: any) => void;
   depth: number;
+  lastUpdatedData: any;
 };
 
-export const createObserveMiddleware = (observers: Map<number, Observer>) => {
+export const createObserveMiddleware = (observers: Map<number, any>) => {
   return (store: any) => (next: any) => (action: any) => {
     const result = next(action);
 
