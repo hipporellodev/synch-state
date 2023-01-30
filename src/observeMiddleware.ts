@@ -3,6 +3,7 @@ import immerPathToJsonPatchPath from './utils/immerPathToJsonPatchPath';
 import jsonPatchPathToImmerPath from './utils/jsonPatchPathToImmerPath';
 
 export type Observer = {
+  lastUpdatedData: Object;
   subtree: string;
   path: string;
   callback: (value: any, change: any) => void;
@@ -62,7 +63,12 @@ export const createObserveMiddleware = (observers: Map<number, Observer>) => {
         })
 
         if(foundAction){
-          callObserver(observer, store, action);
+          let currentData = store.getStateAtPath(observer.path);
+          console.log(currentData)
+          if(observer.lastUpdatedData == null || (observer.lastUpdatedData != null && currentData == null) || (observer.lastUpdatedData != null && JSON.stringify(observer.lastUpdatedData) != JSON.stringify(currentData))){
+            callObserver(observer, store, action);
+          }
+
         }
 
       });
