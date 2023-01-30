@@ -3,7 +3,7 @@ import immerPathToJsonPatchPath from './utils/immerPathToJsonPatchPath';
 import jsonPatchPathToImmerPath from './utils/jsonPatchPathToImmerPath';
 
 export type Observer = {
-  lastUpdatedData: Object;
+  lastUpdatedData: any;
   subtree: string;
   path: string;
   callback: (value: any, change: any) => void;
