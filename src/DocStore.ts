@@ -349,6 +349,7 @@ by passing name in plugin configuration to createPlugin.
         path,
         callback,
         depth,
+        docStore:this
       });
     });
 
