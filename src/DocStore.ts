@@ -109,14 +109,16 @@ by passing name in plugin configuration to createPlugin.
             // Specify extension’s options like name, actionsBlacklist, actionsCreators, serialize...
           })
         : compose;
-
+    this.observers?.forEach(observer=>{
+      observer.docStore = this;
+    })
     this.reduxStore = createStore(
       topReducer,
       initialState,
       composeEnhancers(
         applyMiddleware(
           createInterceptMiddleware(this.interceptors),
-          createObserveMiddleware(this.observers, this),
+          createObserveMiddleware(this.observers),
           createPostInterceptMiddleware(this.postInterceptCallbacks),
           createPostObserveMiddleware(this.postObserveCallbacks),
           ...this.plugins.map(p => p.middleware)
