@@ -10,7 +10,7 @@ export type Observer = {
   lastUpdatedData: any;
 };
 
-export const createObserveMiddleware = (observers: Map<number, any>) => {
+export const createObserveMiddleware = (observers: Map<number, any>, docStore) => {
   return (store: any) => (next: any) => (action: any) => {
     const result = next(action);
 
@@ -63,9 +63,9 @@ export const createObserveMiddleware = (observers: Map<number, any>) => {
         })
 
         if(foundAction){
-          console.log("store", store)
-          let currentData = store?.getStateAtPath(observer.path);
-          console.log(store, currentData)
+          console.log("store", docStore)
+          let currentData = docStore?.getStateAtPath(observer.path);
+          console.log(docStore, currentData)
           if(observer.lastUpdatedData == null || (observer.lastUpdatedData != null && currentData == null) || (observer.lastUpdatedData != null && JSON.stringify(observer.lastUpdatedData) != JSON.stringify(currentData))){
             callObserver(observer, store, action);
           }

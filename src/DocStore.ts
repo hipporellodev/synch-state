@@ -116,7 +116,7 @@ by passing name in plugin configuration to createPlugin.
       composeEnhancers(
         applyMiddleware(
           createInterceptMiddleware(this.interceptors),
-          createObserveMiddleware(this.observers),
+          createObserveMiddleware(this.observers, this),
           createPostInterceptMiddleware(this.postInterceptCallbacks),
           createPostObserveMiddleware(this.postObserveCallbacks),
           ...this.plugins.map(p => p.middleware)
