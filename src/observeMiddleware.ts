@@ -67,6 +67,7 @@ export const createObserveMiddleware = (observers: Map<number, any>) => {
           let currentData = observer.docStore?.getStateAtPath(observer.subtree, observer.path);
           const currentDataString:string = currentData?JSON.stringify(currentData):"null"
           if(observer.lastUpdatedData != currentDataString){
+            console.log("observer.lastUpdatedData", observer.lastUpdatedData)
             observer.lastUpdatedData = currentDataString;
             callObserver(observer, store, action);
           }
