@@ -1,6 +1,7 @@
 import get from 'lodash/get';
 import immerPathToJsonPatchPath from './utils/immerPathToJsonPatchPath';
 import jsonPatchPathToImmerPath from './utils/jsonPatchPathToImmerPath';
+import DocStore from "DocStore";
 
 export type Observer = {
   subtree: string;
@@ -10,7 +11,7 @@ export type Observer = {
   lastUpdatedData: any;
 };
 
-export const createObserveMiddleware = (observers: Map<number, any>, docStore) => {
+export const createObserveMiddleware = (observers: Map<number, any>, docStore:DocStore) => {
   return (store: any) => (next: any) => (action: any) => {
     const result = next(action);
 
