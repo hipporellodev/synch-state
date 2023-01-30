@@ -63,8 +63,8 @@ export const createObserveMiddleware = (observers: Map<number, any>) => {
         })
 
         if(foundAction){
-          let currentData = store.getStateAtPath(observer.path);
-          console.log(currentData)
+          let currentData = store?.getStateAtPath(observer.path);
+          console.log(store, currentData)
           if(observer.lastUpdatedData == null || (observer.lastUpdatedData != null && currentData == null) || (observer.lastUpdatedData != null && JSON.stringify(observer.lastUpdatedData) != JSON.stringify(currentData))){
             callObserver(observer, store, action);
           }
