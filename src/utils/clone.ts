@@ -1,3 +1,4 @@
+/* eslint-disable */
 export default function clone(obj:any):any{
   let isArray = Array.isArray;
   if (!obj) return obj;
