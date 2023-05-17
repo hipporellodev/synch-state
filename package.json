@@ -46,8 +46,8 @@
   },
   "dependencies": {
     "@types/uuid": "^8.3.0",
+    "fast-json-patch": "^3.0.0-1",
     "immer": "^9.0.3",
-    "redux": "^4.0.5",
-    "fastest-json-copy": "1.0.1"
+    "redux": "^4.0.5"
   }
 }

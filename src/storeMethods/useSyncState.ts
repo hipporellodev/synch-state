@@ -1,5 +1,4 @@
 import DocStore from '../DocStore';
-import { SyncStatePath } from '../index';
 import jsonPatchPathToImmerPath from '../utils/jsonPatchPathToImmerPath';
 import immerPathToJsonPatchPath from '../utils/immerPathToJsonPatchPath';
 import {compare} from "fast-json-patch";
