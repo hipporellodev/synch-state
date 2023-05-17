@@ -319,7 +319,7 @@ by passing name in plugin configuration to createPlugin.
       newState = get(state, jsonPatchPathToImmerPath(path))
     }
     if(!newState) return newState;
-    return newState;
+    return clone(newState);
   };
   getPatches = (subtree: string) => {
     const subtreeState = this.reduxStore.getState()[subtree];
