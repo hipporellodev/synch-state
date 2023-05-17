@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import {applyPatch} from 'fast-json-patch';
 import rebaseNeeded from "./utils/rebaseNeeded";
 import isEqual from "lodash/isEqual"
-import clone from "utils/clone";
+import clone from "./utils/clone";
 const  number_reg_exp = /^\d+$/;
 function validatePath(patches:any){
   patches.forEach((patch:any)=>{

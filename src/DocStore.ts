@@ -21,7 +21,7 @@ import { Watch, ComputeCallback } from 'types';
 import { createPostObserveMiddleware } from './postObserveMiddleware';
 import { createPostInterceptMiddleware } from './postInterceptMiddleware';
 import rebaseNeeded from "./utils/rebaseNeeded";
-import clone from "utils/clone";
+import clone from "./utils/clone";
 
 type ReduxStore = Store<
   CombinedState<{
