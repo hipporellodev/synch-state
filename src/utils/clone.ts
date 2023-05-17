@@ -10,7 +10,7 @@ export default function clone(obj:any):any{
   } else if (typeof obj === 'object') {
     let keys = Object.keys(obj);
     let length = keys.length;
-    let newObject = {};
+    let newObject:any = {};
     for (let i = 0; i < length; i++) {
       let key = keys[i];
       newObject[key] = clone(obj[key]);
