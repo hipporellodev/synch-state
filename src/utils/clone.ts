@@ -1,4 +1,4 @@
-export default function clone(obj):any{
+export default function clone(obj:any):any{
   let isArray = Array.isArray;
   if (!obj) return obj;
   if (isArray(obj)) {
