@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import {applyPatch} from 'fast-json-patch';
 import rebaseNeeded from "./utils/rebaseNeeded";
 import isEqual from "lodash/isEqual"
+import clone from "utils/clone";
 const  number_reg_exp = /^\d+$/;
 function validatePath(patches:any){
   patches.forEach((patch:any)=>{
@@ -98,7 +99,7 @@ function alreadyApplied(subtree:any, command:any){
   return existingCommand != null && existingCommand.confirmed;
 }
 function applyRemainingLocalCommands(remoteState:any, localState:any, commandsRegistry:any, localCommands:any[]) {
-  let newLocalState = {...localState, ...JSON.parse(JSON.stringify(remoteState))};
+  let newLocalState = {...localState, ...clone(remoteState)};
   let allPatches: any[] = [];
   localCommands.forEach((localCommandId: any) => {
     let localCommand = commandsRegistry[localCommandId];
@@ -117,7 +118,7 @@ function applyRemainingLocalCommands(remoteState:any, localState:any, commandsRe
 function getOrAddCommand(subtree:any, command:any){
   let existingCommand = subtree.commands[command.payload.id];
   if(existingCommand == null){
-    command = JSON.parse(JSON.stringify(command));
+    command = clone(command);
     existingCommand = {
       payload:{...command.payload},
       type:command.type,
@@ -233,7 +234,7 @@ export function topReducer(state: any, action: any) {
         subtree.remoteState = newRemoteState;
       }
       else {
-        let prevState = subtree.state?JSON.parse(JSON.stringify(subtree.state)):null;
+        let prevState = subtree.state?clone(subtree.state):null;
         let newState = localApplyPatches(subtree.state, patches)
 
         if(isEqual(prevState, newState)){
@@ -326,7 +327,7 @@ export function topReducer(state: any, action: any) {
           }
         })
         subtree.state = {...subtree.state, ...initialState};
-        let origAction = JSON.parse(JSON.stringify(action));
+        let origAction = clone(action);
         action.payload.patches = allPatches;
         action.type = "PATCHES";
         action.sid = origAction.sid;

@@ -21,6 +21,7 @@ import { Watch, ComputeCallback } from 'types';
 import { createPostObserveMiddleware } from './postObserveMiddleware';
 import { createPostInterceptMiddleware } from './postInterceptMiddleware';
 import rebaseNeeded from "./utils/rebaseNeeded";
+import clone from "utils/clone";
 
 type ReduxStore = Store<
   CombinedState<{
@@ -231,7 +232,7 @@ by passing name in plugin configuration to createPlugin.
       console.warn(`Tried to access non-existent subtree ${subtree}`);
       return undefined;
     }
-    return subtreeState.state?JSON.parse(JSON.stringify(subtreeState.state)):null;
+    return subtreeState.state?clone(subtreeState.state):null;
   };
 
   hasUndo(subtree:string){
@@ -318,7 +319,7 @@ by passing name in plugin configuration to createPlugin.
       newState = get(state, jsonPatchPathToImmerPath(path))
     }
     if(!newState) return newState;
-    return JSON.parse(JSON.stringify(newState));
+    return clone(newState);
   };
   getPatches = (subtree: string) => {
     const subtreeState = this.reduxStore.getState()[subtree];
