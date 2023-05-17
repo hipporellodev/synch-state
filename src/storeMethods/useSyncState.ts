@@ -5,7 +5,7 @@ import immerPathToJsonPatchPath from '../utils/immerPathToJsonPatchPath';
 import {compare} from "fast-json-patch";
 import get from 'lodash/get';
 import set from 'lodash/set';
-import clone from "./utils/clone";
+import clone from "../utils/clone";
 function isNumber(num:any){
   return !isNaN(parseFloat(num)) && isFinite(num);
 }
